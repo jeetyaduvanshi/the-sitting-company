@@ -9,8 +9,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        brand: {
+          black: "#0F0B08",
+          deep: "#080503",
+          card: "#1A1209",
+          gold: "#C9A84C",
+          cream: "#F0E6D3",
+          white: "#F5F0EA",
+          grey: "#9A8F84",
+          divider: "#2A1F14",
+        },
+      },
+      fontFamily: {
+        cormorant: ["var(--font-cormorant)", "serif"],
+        dmsans: ["var(--font-dm-sans)", "sans-serif"],
+      },
+      letterSpacing: {
+        widest: "0.2em",
+        wide: "0.15em",
       },
     },
   },
