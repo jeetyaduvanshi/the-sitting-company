@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import Link from "next/link";
-import { categories } from "@/data/categories";
 
 type FormState = "idle" | "loading" | "success" | "error";
 type Tab = "upload" | "manage";
@@ -14,31 +13,34 @@ interface Product {
   description: string;
   price: string;
   image: string;
-  amazonUrl: string;
-  flipkartUrl: string;
+  amazonLink: string;
+  flipkartLink: string;
   tag?: string;
+  createdAt?: string;
 }
 
-const TAGS = [
-  { label: "No Tag", value: "" },
-  { label: "Signature", value: "SIGNATURE" },
-  { label: "Bestseller", value: "BESTSELLER" },
-  { label: "Limited Edition", value: "LIMITED EDITION" },
-  { label: "New Arrival", value: "NEW ARRIVAL" },
-  { label: "Exclusive", value: "EXCLUSIVE" },
+// ─── Category data matching user spec ───────────────────────────────────────
+const CATEGORIES = [
+  { id: "office-chairs",       name: "Office Chairs",                  emoji: "🪑" },
+  { id: "visitor-conference",  name: "Visitor & Conference Chairs",    emoji: "👥" },
+  { id: "folding-chairs",      name: "Folding Chairs",                 emoji: "📐" },
+  { id: "study-chairs",        name: "Study Chairs",                   emoji: "📚" },
+  { id: "ergonomic-chairs",    name: "Ergonomic Chairs",               emoji: "⚙️" },
+  { id: "bar-stools",          name: "Bar Stools",                     emoji: "🍹" },
+  { id: "lounge-chairs",       name: "Lounge Chairs",                  emoji: "🛋️" },
+  { id: "gaming-chairs",       name: "Gaming Chairs",                  emoji: "🎮" },
 ];
 
-const categoryIcons: Record<string, string> = {
-  "office-chairs": "🪑",
-  "visitor-conference": "👥",
-  "folding-chairs": "📐",
-  "study-chairs": "📚",
-  "ergonomic-chairs": "⚙️",
-  "bar-stools": "🍹",
-  "lounge-chairs": "🛋️",
-  "gaming-chairs": "🎮",
-};
+const TAGS = [
+  { label: "No Tag",          value: "" },
+  { label: "Signature",       value: "SIGNATURE" },
+  { label: "Bestseller",      value: "BESTSELLER" },
+  { label: "Limited Edition", value: "LIMITED EDITION" },
+  { label: "New Arrival",     value: "NEW ARRIVAL" },
+  { label: "Exclusive",       value: "EXCLUSIVE" },
+];
 
+// ─── Icons ───────────────────────────────────────────────────────────────────
 const UploadIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -56,17 +58,17 @@ const SpinIcon = () => (
 // ─────────────────────────────────────────────────────────────────────────────
 function ManageTab() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [confirmId, setConfirmId]   = useState<string | null>(null);
+  const [error, setError]           = useState("");
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/upload-chair");
+      const res  = await fetch("/api/upload-chair");
       const data = await res.json();
-      setProducts(data);
+      setProducts(Array.isArray(data) ? data : []);
     } catch {
       setError("Failed to load products.");
     } finally {
@@ -111,7 +113,9 @@ function ManageTab() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="font-serif text-2xl text-[#F0E6D3]">Current Catalogue</h2>
-          <p className="font-sans text-xs text-[#9A8F84] mt-1">{products.length} chair{products.length !== 1 ? "s" : ""} total</p>
+          <p className="font-sans text-xs text-[#9A8F84] mt-1">
+            {products.length} chair{products.length !== 1 ? "s" : ""} total
+          </p>
         </div>
         <button
           onClick={fetchProducts}
@@ -139,7 +143,7 @@ function ManageTab() {
         <div className="space-y-3">
           {products.map((product) => {
             const isConfirming = confirmId === product.id;
-            const isDeleting = deletingId === product.id;
+            const isDeleting   = deletingId === product.id;
 
             return (
               <div
@@ -150,7 +154,7 @@ function ManageTab() {
                     : "border-[#2A1F14] bg-[#1A1209] hover:border-[#C9A84C]/20"
                 }`}
               >
-                {/* Chair image thumbnail */}
+                {/* Thumbnail */}
                 <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-[#0F0B08] border border-[#2A1F14]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -158,12 +162,13 @@ function ManageTab() {
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%232A1F14' stroke-width='1.5'%3E%3Cpath d='M4 18v3M20 18v3M4 12h16M4 8h16M19 12v6M5 12v6M7 4h10v4H7z'/%3E%3C/svg%3E";
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%232A1F14' stroke-width='1.5'%3E%3Cpath d='M4 18v3M20 18v3M4 12h16M4 8h16M19 12v6M5 12v6M7 4h10v4H7z'/%3E%3C/svg%3E";
                     }}
                   />
                 </div>
 
-                {/* Chair info */}
+                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="font-serif text-base text-[#F0E6D3] truncate">{product.name}</p>
@@ -175,8 +180,18 @@ function ManageTab() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-sans text-xs text-[#9A8F84]">{product.category}</span>
-                    <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
-                    <span className="font-sans text-xs text-[#C9A84C] font-semibold">{product.price}</span>
+                    {product.amazonLink && product.amazonLink !== "#" && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
+                        <span className="font-sans text-[10px] text-green-500/70">Amazon ✓</span>
+                      </>
+                    )}
+                    {product.flipkartLink && product.flipkartLink !== "#" && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
+                        <span className="font-sans text-[10px] text-sky-500/70">Flipkart ✓</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -226,24 +241,25 @@ function ManageTab() {
 // UPLOAD FORM
 // ─────────────────────────────────────────────────────────────────────────────
 function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => void }) {
-  const [formState, setFormState] = useState<FormState>("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [formState, setFormState]       = useState<FormState>("idle");
+  const [errorMsg, setErrorMsg]         = useState("");
+  const [imageFile, setImageFile]       = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [amazonUrl, setAmazonUrl] = useState("");
-  const [flipkartUrl, setFlipkartUrl] = useState("");
-  const [tag, setTag] = useState("");
-  const [step, setStep] = useState<1 | 2>(1);
+  const [isDragging, setIsDragging]     = useState(false);
+  const fileInputRef                    = useRef<HTMLInputElement>(null);
+
+  const [name,          setName]          = useState("");
+  const [category,      setCategory]      = useState("");
+  const [description,   setDescription]   = useState("");
+  const [price,         setPrice]         = useState("");
+  const [amazonLink,    setAmazonLink]    = useState("");
+  const [flipkartLink,  setFlipkartLink]  = useState("");
+  const [tag,           setTag]           = useState("");
+  const [step,          setStep]          = useState<1 | 2>(1);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) { setErrorMsg("Please upload a valid image (JPG, PNG, WEBP)."); return; }
-    if (file.size > 10 * 1024 * 1024) { setErrorMsg("Image must be under 10MB."); return; }
+    if (file.size > 10 * 1024 * 1024)   { setErrorMsg("Image must be under 10MB."); return; }
     setErrorMsg("");
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
@@ -254,33 +270,38 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
     const file = e.dataTransfer.files?.[0];
     if (file) handleFile(file);
   };
+
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (file) handleFile(file);
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { setErrorMsg("Chair name is required."); return; }
-    if (!category) { setErrorMsg("Please select a category."); return; }
-    if (!description.trim()) { setErrorMsg("Description is required."); return; }
-    if (!price.trim()) { setErrorMsg("Price is required."); return; }
-    if (!imageFile) { setErrorMsg("Please upload a chair image."); return; }
-    setErrorMsg(""); setFormState("loading");
+    if (!name.trim())        { setErrorMsg("Chair name is required.");      return; }
+    if (!category)           { setErrorMsg("Please select a category.");    return; }
+    if (!description.trim()) { setErrorMsg("Description is required.");     return; }
+    if (!price.trim())       { setErrorMsg("Price is required.");           return; }
+    if (!imageFile)          { setErrorMsg("Please upload a chair image."); return; }
+
+    setErrorMsg("");
+    setFormState("loading");
 
     try {
       const fd = new FormData();
-      fd.append("name", name.trim());
-      fd.append("category", category);
-      fd.append("description", description.trim());
-      fd.append("price", price.trim());
-      fd.append("amazonUrl", amazonUrl.trim() || "#");
-      fd.append("flipkartUrl", flipkartUrl.trim() || "#");
+      fd.append("name",         name.trim());
+      fd.append("category",     category);
+      fd.append("description",  description.trim());
+      fd.append("price",        price.trim());
+      fd.append("amazonLink",   amazonLink.trim()  || "#");
+      fd.append("flipkartLink", flipkartLink.trim() || "#");
       if (tag) fd.append("tag", tag);
       fd.append("image", imageFile);
 
-      const res = await fetch("/api/upload-chair", { method: "POST", body: fd });
+      const res  = await fetch("/api/upload-chair", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed.");
+      setFormState("success");
       onSuccess(data.product?.name || name, category);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
@@ -290,6 +311,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
 
   return (
     <div className="max-w-5xl mx-auto">
+
       {/* Step indicators */}
       <div className="flex items-center justify-center gap-3 mb-10">
         {[1, 2].map((s) => (
@@ -312,7 +334,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
         <div className="max-w-4xl mx-auto">
           <p className="text-center font-sans text-sm text-[#9A8F84] mb-8">Which type of chair are you adding?</p>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {categories.map((cat) => {
+            {CATEGORIES.map((cat) => {
               const isSelected = category === cat.name;
               return (
                 <button
@@ -325,7 +347,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
                   {isSelected && (
                     <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#C9A84C] flex items-center justify-center text-[#0F0B08] text-[10px] font-bold">✓</span>
                   )}
-                  <span className="text-3xl">{categoryIcons[cat.id] || "🪑"}</span>
+                  <span className="text-3xl">{cat.emoji}</span>
                   <p className={`font-serif text-base font-semibold leading-tight transition-colors duration-300 ${isSelected ? "text-[#C9A84C]" : "text-[#F0E6D3] group-hover:text-[#C9A84C]"}`}>
                     {cat.name}
                   </p>
@@ -352,21 +374,24 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
       {/* ── STEP 2: Details ── */}
       {step === 2 && (
         <form onSubmit={handleSubmit} className="max-w-5xl mx-auto">
+
           {/* Category badge */}
           <div className="flex items-center justify-between mb-8 p-4 bg-[#1A1209] border border-[#C9A84C]/20">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{categoryIcons[categories.find(c => c.name === category)?.id || ""] || "🪑"}</span>
+              <span className="text-2xl">{CATEGORIES.find(c => c.name === category)?.emoji || "🪑"}</span>
               <div>
                 <p className="text-[10px] font-sans uppercase tracking-widest text-[#9A8F84]">Category</p>
                 <p className="font-serif text-lg text-[#C9A84C] font-semibold">{category}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setStep(1)} className="text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] hover:text-[#C9A84C] border border-[#2A1F14] hover:border-[#C9A84C]/30 px-3 py-2 transition-all duration-200">
+            <button type="button" onClick={() => setStep(1)}
+              className="text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] hover:text-[#C9A84C] border border-[#2A1F14] hover:border-[#C9A84C]/30 px-3 py-2 transition-all duration-200">
               Change
             </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
             {/* LEFT: Image + Tag */}
             <div className="space-y-5">
               <div>
@@ -410,6 +435,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
                   </div>
                 )}
               </div>
+
               {/* Tag */}
               <div>
                 <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
@@ -427,20 +453,20 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
               </div>
             </div>
 
-            {/* RIGHT: Text Fields */}
+            {/* RIGHT: Text fields */}
             <div className="space-y-5">
-              {[
-                { label: "Chair Name", value: name, setter: setName, placeholder: "e.g. The Royal Visitor Pro", required: true },
-              ].map(({ label, value, setter, placeholder, required }) => (
-                <div key={label}>
-                  <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
-                    {label} {required && <span className="text-red-400">*</span>}
-                  </label>
-                  <input type="text" value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder}
-                    className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3.5 outline-none transition-colors duration-300" />
-                </div>
-              ))}
 
+              {/* Product Name */}
+              <div>
+                <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
+                  Chair Name <span className="text-red-400">*</span>
+                </label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. The Royal Visitor Pro"
+                  className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3.5 outline-none transition-colors duration-300" />
+              </div>
+
+              {/* Description */}
               <div>
                 <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
                   Description <span className="text-red-400">*</span>
@@ -450,6 +476,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
                   className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3.5 outline-none transition-colors duration-300 resize-none leading-relaxed" />
               </div>
 
+              {/* Price */}
               <div>
                 <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
                   Price <span className="text-red-400">*</span>
@@ -458,19 +485,27 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
                   className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3.5 outline-none transition-colors duration-300" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: "Amazon URL", value: amazonUrl, setter: setAmazonUrl, placeholder: "amazon.in/..." },
-                  { label: "Flipkart URL", value: flipkartUrl, setter: setFlipkartUrl, placeholder: "flipkart.com/..." },
-                ].map(({ label, value, setter, placeholder }) => (
-                  <div key={label}>
-                    <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">{label}</label>
-                    <input type="text" value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder}
-                      className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-xs px-3 py-3.5 outline-none transition-colors duration-300" />
-                  </div>
-                ))}
+              {/* Amazon Link */}
+              <div>
+                <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
+                  Amazon Link <span className="text-[#9A8F84] font-normal">(optional)</span>
+                </label>
+                <input type="url" value={amazonLink} onChange={(e) => setAmazonLink(e.target.value)}
+                  placeholder="https://www.amazon.in/..."
+                  className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-xs px-4 py-3.5 outline-none transition-colors duration-300" />
               </div>
 
+              {/* Flipkart Link */}
+              <div>
+                <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-3">
+                  Flipkart Link <span className="text-[#9A8F84] font-normal">(optional)</span>
+                </label>
+                <input type="url" value={flipkartLink} onChange={(e) => setFlipkartLink(e.target.value)}
+                  placeholder="https://www.flipkart.com/..."
+                  className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-xs px-4 py-3.5 outline-none transition-colors duration-300" />
+              </div>
+
+              {/* Error message */}
               {(errorMsg || formState === "error") && (
                 <div className="flex items-start gap-3 p-4 bg-red-500/5 border border-red-500/20">
                   <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -480,12 +515,16 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
                 </div>
               )}
 
+              {/* Submit */}
               <button type="submit" disabled={formState === "loading"}
                 className="w-full py-4 bg-[#C9A84C] hover:bg-[#F0E6D3] text-[#0F0B08] font-sans text-[11px] uppercase tracking-widest font-bold transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3">
-                {formState === "loading" ? <><SpinIcon /> Uploading...</> : <><UploadIcon /> Publish to {category}</>}
+                {formState === "loading" ? <><SpinIcon /> Uploading to Cloudinary...</> : <><UploadIcon /> Publish to {category}</>}
               </button>
-              <p className="font-sans text-[10px] text-[#9A8F84]/50 text-center">Chair will appear under <span className="text-[#9A8F84]">{category}</span> once published.</p>
+              <p className="font-sans text-[10px] text-[#9A8F84]/50 text-center">
+                Image → Cloudinary · Product data → MongoDB Atlas
+              </p>
             </div>
+
           </div>
         </form>
       )}
@@ -497,7 +536,7 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function UploadPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("upload");
+  const [activeTab, setActiveTab]   = useState<Tab>("upload");
   const [successData, setSuccessData] = useState<{ name: string; category: string } | null>(null);
 
   const handleUploadSuccess = (name: string, cat: string) => {
@@ -540,9 +579,12 @@ export default function UploadPage() {
             <span className="text-[10px] font-sans uppercase tracking-[0.25em] text-[#C9A84C] font-bold block mb-4">
               Admin — Product Management
             </span>
-            <h1 className="font-serif text-5xl sm:text-6xl text-[#F5F0EA] mb-4">
+            <h1 className="font-serif text-5xl sm:text-6xl text-[#F5F0EA] mb-2">
               Catalogue <span className="italic text-[#F0E6D3] font-normal">Control</span>
             </h1>
+            <p className="font-sans text-xs text-[#9A8F84] mt-3">
+              Images stored on <span className="text-[#C9A84C]">Cloudinary</span> · Products saved in <span className="text-[#C9A84C]">MongoDB Atlas</span>
+            </p>
           </div>
 
           {/* Tab switcher */}
@@ -594,15 +636,21 @@ export default function UploadPage() {
                 </div>
                 <span className="text-[11px] font-sans uppercase tracking-widest text-[#C9A84C] font-bold block mb-3">Published!</span>
                 <h2 className="font-serif text-3xl text-[#F0E6D3] mb-2">&ldquo;{successData.name}&rdquo;</h2>
-                <p className="font-sans text-sm text-[#9A8F84] mb-8">Added to <span className="text-[#C9A84C]">{successData.category}</span> and now live on the website.</p>
+                <p className="font-sans text-sm text-[#9A8F84] mb-2">
+                  Added to <span className="text-[#C9A84C]">{successData.category}</span> and now live on the website.
+                </p>
+                <p className="font-sans text-xs text-[#9A8F84]/50 mb-8">Image saved to Cloudinary · Data saved to MongoDB</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button onClick={handleUploadAnother} className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#0F0B08] bg-[#C9A84C] hover:bg-[#F0E6D3] transition-all duration-300 font-bold">
+                  <button onClick={handleUploadAnother}
+                    className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#0F0B08] bg-[#C9A84C] hover:bg-[#F0E6D3] transition-all duration-300 font-bold">
                     Upload Another
                   </button>
-                  <button onClick={() => setActiveTab("manage")} className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#F0E6D3] border border-[#2A1F14] hover:border-[#C9A84C]/40 transition-all duration-300">
+                  <button onClick={() => setActiveTab("manage")}
+                    className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#F0E6D3] border border-[#2A1F14] hover:border-[#C9A84C]/40 transition-all duration-300">
                     View All Chairs
                   </button>
-                  <Link href="/" className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-[#C9A84C]/40 transition-all duration-300 text-center">
+                  <Link href="/"
+                    className="px-6 py-3 text-[11px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-[#C9A84C]/40 transition-all duration-300 text-center">
                     Go to Website
                   </Link>
                 </div>

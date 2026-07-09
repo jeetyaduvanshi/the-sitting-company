@@ -128,7 +128,7 @@ function EnquiryForm() {
   return (
     <div className="flex flex-col w-full">
       <span className="text-[10px] font-dmsans uppercase tracking-widest text-brand-gold font-bold mb-4">
-        REQUEST A BULK QUOTE
+        REQUEST A BULK ORDER
       </span>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
@@ -195,7 +195,7 @@ function EnquiryForm() {
           </span>
           <Link
             href="tel:+919876543210"
-            className="font-cormorant text-base font-semibold text-brand-cream hover:text-brand-gold transition-colors duration-300"
+            className="font-dmsans text-base font-bold text-brand-cream hover:text-brand-gold transition-colors duration-300"
           >
             +91 98765 43210
           </Link>

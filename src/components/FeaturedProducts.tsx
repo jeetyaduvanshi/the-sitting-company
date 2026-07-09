@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { products } from "@/data/products";
+import { products, Product } from "@/data/products";
 
 // Build the unique categories list from actual products
-function getUniqueCategories(prods: typeof products) {
+function getUniqueCategories(prods: Product[]) {
   const seen = new Set<string>();
   const cats: string[] = ["All"];
   for (const p of prods) {
@@ -20,12 +20,34 @@ function getUniqueCategories(prods: typeof products) {
 }
 
 export default function FeaturedProducts() {
-  const uniqueCategories = getUniqueCategories(products);
+  const [productsList, setProductsList] = useState<Product[]>(products);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDynamicProducts() {
+      try {
+        const res = await fetch("/api/upload-chair");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setProductsList(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load products dynamically:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDynamicProducts();
+  }, []);
+
+  const uniqueCategories = getUniqueCategories(productsList);
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
   const filtered = activeCategory === "All"
-    ? products
-    : products.filter((p) => p.category === activeCategory);
+    ? productsList
+    : productsList.filter((p) => p.category === activeCategory);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -147,7 +169,7 @@ export default function FeaturedProducts() {
                     {/* Side-by-Side CTA Buttons - Visible by Default */}
                     <div className="grid grid-cols-2 gap-3 mt-6">
                       <Link
-                        href={product.amazonUrl}
+                        href={product.amazonLink || "#"}
                         className="group/btn flex items-center justify-center gap-2 py-2.5 border border-brand-gold/15 hover:border-amber-500/50 bg-brand-black/40 hover:bg-amber-500/5 transition-all duration-300 rounded-sm"
                       >
                         <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-amber-500 transition-colors duration-300 font-bold">
@@ -164,7 +186,7 @@ export default function FeaturedProducts() {
                       </Link>
 
                       <Link
-                        href={product.flipkartUrl}
+                        href={product.flipkartLink || "#"}
                         className="group/btn flex items-center justify-center gap-2 py-2.5 border border-brand-gold/15 hover:border-sky-500/50 bg-brand-black/40 hover:bg-sky-500/5 transition-all duration-300 rounded-sm"
                       >
                         <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-sky-500 transition-colors duration-300 font-bold">

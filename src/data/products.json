@@ -6,8 +6,8 @@
     "description": "An iconic silhouette crafted with hand-finished top-grain antique leather and a brushed brass swivel base.",
     "price": "₹48,500",
     "image": "/images/sovereign_lounge.webp",
-    "amazonUrl": "#",
-    "flipkartUrl": "#",
+    "amazonLink": "#",
+    "flipkartLink": "#",
     "tag": "SIGNATURE"
   },
   {
@@ -17,8 +17,8 @@
     "description": "Engineered for optimal lumbar alignment, featuring multi-flex mesh, auto-weight sensing, and dynamic tilt.",
     "price": "₹32,000",
     "image": "/images/aeron_pro.webp",
-    "amazonUrl": "#",
-    "flipkartUrl": "#",
+    "amazonLink": "#",
+    "flipkartLink": "#",
     "tag": "BESTSELLER"
   },
   {
@@ -28,8 +28,8 @@
     "description": "A commanding presence for the modern workspace. Upholstered in premium cashmere with a dark walnut backing frame.",
     "price": "₹62,000",
     "image": "/images/monarch_executive.webp",
-    "amazonUrl": "#",
-    "flipkartUrl": "#",
+    "amazonLink": "#",
+    "flipkartLink": "#",
     "tag": "LIMITED EDITION"
   }
 ]

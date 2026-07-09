@@ -1,34 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, readFile } from "fs/promises";
+import { readFile } from "fs/promises";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import clientPromise from "@/lib/mongodb";
 
-// GET: return all products
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper: upload image buffer to Cloudinary
+const uploadToCloudinary = (buffer: Buffer): Promise<{ secure_url: string; public_id: string }> => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "the_sitting_company", resource_type: "auto" },
+      (error, result) => {
+        if (error || !result) reject(error);
+        else resolve(result as { secure_url: string; public_id: string });
+      }
+    );
+    stream.end(buffer);
+  });
+};
+
+// ─── GET: return all products ───────────────────────────────────────────────
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "src", "data", "products.json");
-    const data = await readFile(filePath, "utf-8");
-    return NextResponse.json(JSON.parse(data));
-  } catch {
-    return NextResponse.json({ error: "Failed to read products" }, { status: 500 });
+    const client = await clientPromise;
+    const db = client.db("sitting_company");
+    const col = db.collection("products");
+    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+
+    // Auto-seed from products.json when collection is empty
+    if (docs.length === 0) {
+      const filePath = path.join(process.cwd(), "src", "data", "products.json");
+      const raw = await readFile(filePath, "utf-8");
+      const seed = JSON.parse(raw);
+      const seeded = seed.map((p: Record<string, unknown>) => ({
+        ...p,
+        // Normalise field names on seed
+        amazonLink: p.amazonLink ?? p.amazonUrl ?? "#",
+        flipkartLink: p.flipkartLink ?? p.flipkartUrl ?? "#",
+        createdAt: new Date(),
+      }));
+      await col.insertMany(seeded);
+      return NextResponse.json(seeded);
+    }
+
+    return NextResponse.json(docs);
+  } catch (err) {
+    console.error("GET /api/upload-chair error:", err);
+    // Resilient fallback to static file
+    try {
+      const filePath = path.join(process.cwd(), "src", "data", "products.json");
+      const raw = await readFile(filePath, "utf-8");
+      return NextResponse.json(JSON.parse(raw));
+    } catch {
+      return NextResponse.json({ error: "Failed to read products" }, { status: 500 });
+    }
   }
 }
 
-// POST: upload a new chair product with image
+// ─── POST: upload new product ────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
-    // Extract fields
-    const name = formData.get("name") as string;
-    const category = formData.get("category") as string;
-    const description = formData.get("description") as string;
-    const price = formData.get("price") as string;
-    const amazonUrl = (formData.get("amazonUrl") as string) || "#";
-    const flipkartUrl = (formData.get("flipkartUrl") as string) || "#";
-    const tag = (formData.get("tag") as string) || "";
-    const imageFile = formData.get("image") as File | null;
+    const name        = (formData.get("name") as string)?.trim();
+    const category    = (formData.get("category") as string)?.trim();
+    const description = (formData.get("description") as string)?.trim();
+    const price       = (formData.get("price") as string)?.trim();
+    const amazonLink  = (formData.get("amazonLink") as string)?.trim() || "#";
+    const flipkartLink= (formData.get("flipkartLink") as string)?.trim() || "#";
+    const tag         = (formData.get("tag") as string)?.trim() || "";
+    const imageFile   = formData.get("image") as File | null;
 
-    // Validate required fields
     if (!name || !category || !description || !price) {
       return NextResponse.json(
         { error: "Name, category, description, and price are required." },
@@ -36,65 +84,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle image upload
-    let imagePath = "/images/placeholder_chair.png";
+    // Upload image to Cloudinary
+    let imageUrl = "/images/monarch_executive.webp";
+    let cloudinaryPublicId = "";
+
     if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
-
-      // Create a unique filename: slug + timestamp + extension
-      const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
-      const slug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .trim()
-        .replace(/\s+/g, "-");
-      const timestamp = Date.now();
-      const filename = `${slug}-${timestamp}.${ext}`;
-
-      // Save to public/images/uploaded/
-      const uploadDir = path.join(process.cwd(), "public", "images", "uploaded");
-      const { mkdir } = await import("fs/promises");
-      await mkdir(uploadDir, { recursive: true });
-
-      const absoluteImagePath = path.join(uploadDir, filename);
-      await writeFile(absoluteImagePath, buffer);
-      imagePath = `/images/uploaded/${filename}`;
+      const result = await uploadToCloudinary(buffer);
+      imageUrl = result.secure_url;
+      cloudinaryPublicId = result.public_id;
     }
 
-    // Build new product object
-    const id = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
+    // Build document matching user's schema spec
+    const id = `${name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-")}-${Date.now()}`;
 
     const newProduct = {
-      id: `${id}-${Date.now()}`,
+      id,
       name,
       category,
       description,
       price,
-      image: imagePath,
-      amazonUrl,
-      flipkartUrl,
+      image: imageUrl,
+      amazonLink,
+      flipkartLink,
       ...(tag ? { tag } : {}),
+      ...(cloudinaryPublicId ? { cloudinaryPublicId } : {}),
+      createdAt: new Date(),
     };
 
-    // Read, update, and write products.json
-    const jsonPath = path.join(process.cwd(), "src", "data", "products.json");
-    const existing = JSON.parse(await readFile(jsonPath, "utf-8"));
-    existing.push(newProduct);
-    await writeFile(jsonPath, JSON.stringify(existing, null, 2), "utf-8");
+    const client = await clientPromise;
+    const db = client.db("sitting_company");
+    await db.collection("products").insertOne(newProduct);
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
   } catch (err) {
-    console.error("Upload error:", err);
-    return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+    console.error("POST /api/upload-chair error:", err);
+    return NextResponse.json(
+      { error: "Upload failed. Check your Cloudinary and MongoDB credentials." },
+      { status: 500 }
+    );
   }
 }
 
-// DELETE: remove a product by ID
+// ─── DELETE: remove product by id ───────────────────────────────────────────
 export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json();
@@ -102,30 +135,28 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
     }
 
-    const jsonPath = path.join(process.cwd(), "src", "data", "products.json");
-    const existing = JSON.parse(await readFile(jsonPath, "utf-8"));
+    const client = await clientPromise;
+    const db = client.db("sitting_company");
+    const col = db.collection("products");
 
-    const productToDelete = existing.find((p: { id: string }) => p.id === id);
-    if (!productToDelete) {
+    const doc = await col.findOne({ id });
+    if (!doc) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
 
-    // Delete uploaded image from disk if it's in /images/uploaded/
-    if (productToDelete.image?.startsWith("/images/uploaded/")) {
-      const { unlink } = await import("fs/promises");
+    // Delete image from Cloudinary
+    if (doc.cloudinaryPublicId) {
       try {
-        await unlink(path.join(process.cwd(), "public", productToDelete.image));
-      } catch {
-        // File may already be gone — ignore
+        await cloudinary.uploader.destroy(doc.cloudinaryPublicId);
+      } catch (e) {
+        console.error("Cloudinary delete failed:", e);
       }
     }
 
-    const updated = existing.filter((p: { id: string }) => p.id !== id);
-    await writeFile(jsonPath, JSON.stringify(updated, null, 2), "utf-8");
-
+    await col.deleteOne({ id });
     return NextResponse.json({ success: true, deleted: id });
   } catch (err) {
-    console.error("Delete error:", err);
+    console.error("DELETE /api/upload-chair error:", err);
     return NextResponse.json({ error: "Failed to delete product." }, { status: 500 });
   }
 }

@@ -5,9 +5,10 @@ export interface Product {
   description: string;
   price: string;
   image: string;
-  amazonUrl: string;
-  flipkartUrl: string;
+  amazonLink: string;
+  flipkartLink: string;
   tag?: string;
+  createdAt?: string | Date;
 }
 
 export const HERO_IMAGE = "/images/hero_chair.webp";
