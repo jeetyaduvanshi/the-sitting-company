@@ -11,7 +11,7 @@ export default function AboutStrip() {
         {/* Left Side: Full Bleed Image */}
         <div className="relative h-[400px] sm:h-[500px] lg:h-auto min-h-[400px] w-full overflow-hidden border-b lg:border-b-0 lg:border-r border-brand-divider">
           <Image
-            src="/images/about_lifestyle.png"
+            src="/images/about_lifestyle.webp"
             alt="The Sitting Company lifestyle furniture manufacturing craftsmanship"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"

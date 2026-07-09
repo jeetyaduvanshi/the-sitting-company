@@ -117,16 +117,26 @@ export default function Hero() {
             <span className="text-[11px] font-dmsans uppercase tracking-widest text-brand-grey">
               Available on Amazon & Flipkart
             </span>
-            <div className="flex items-center gap-6 opacity-40 hover:opacity-60 transition-opacity duration-300">
-              {/* Amazon Text/Icon Representation */}
-              <span className="text-brand-white font-dmsans font-semibold text-xs tracking-wider">
-                amazon
-              </span>
+            <div className="flex items-center gap-5 opacity-55 hover:opacity-85 transition-opacity duration-300">
+              {/* Amazon Logo */}
+              <div className="relative h-6 w-6">
+                <Image
+                  src="/images/amazon_logo_white.png"
+                  alt="Amazon Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
               <span className="h-3 w-[1px] bg-brand-grey/30" />
-              {/* Flipkart Text/Icon Representation */}
-              <span className="text-brand-white font-dmsans font-semibold text-xs tracking-wider">
-                Flipkart
-              </span>
+              {/* Flipkart Logo */}
+              <div className="relative h-6 w-6">
+                <Image
+                  src="/images/flipkart_logo.png"
+                  alt="Flipkart Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </div>
           </motion.div>
         </motion.div>
@@ -152,7 +162,7 @@ export default function Hero() {
             {/* Fine border container */}
             <div className="relative aspect-[4/5] w-full overflow-hidden border border-brand-gold/10">
               <Image
-                src="/images/hero_chair.png"
+                src="/images/hero_chair.webp"
                 alt="The Sitting Company Best Selling Ergonomic Office Chair"
                 fill
                 priority

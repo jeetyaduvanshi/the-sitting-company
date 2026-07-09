@@ -21,11 +21,11 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "#home" },
-    { name: "Collections", href: "#collections" },
-    { name: "About", href: "#about" },
-    { name: "Bulk Orders", href: "#bulk-orders" },
-    { name: "Contact", href: "#contact" },
+    { name: "Home", href: "/#home" },
+    { name: "Collections", href: "/#collections" },
+    { name: "About", href: "/#about" },
+    { name: "Bulk Orders", href: "/#bulk-orders" },
+    { name: "Contact", href: "/#contact" },
   ];
 
   return (
@@ -73,7 +73,7 @@ export default function Navbar() {
         {/* Right: Bulk Enquiry Button */}
         <div className="hidden md:block">
           <Link
-            href="#bulk-orders"
+            href="/#bulk-orders"
             className="inline-flex items-center justify-center px-5 py-2 text-[11px] font-dmsans uppercase tracking-wide text-brand-gold border border-brand-gold rounded-full hover:bg-brand-gold hover:text-brand-black transition-all duration-300"
           >
             Bulk Enquiry
@@ -107,7 +107,7 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col gap-6 items-center">
             <Link
-              href="#bulk-orders"
+              href="/#bulk-orders"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center py-3 text-xs font-dmsans uppercase tracking-widest text-brand-black bg-brand-cream hover:bg-brand-gold hover:text-brand-black transition-all duration-300 rounded"
             >
