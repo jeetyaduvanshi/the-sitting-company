@@ -65,6 +65,14 @@ export async function GET() {
 
 // ─── POST: upload new product ────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
+  // Check env vars first
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    return NextResponse.json({ error: "Missing Cloudinary environment variables on server." }, { status: 500 });
+  }
+  if (!process.env.MONGODB_URI) {
+    return NextResponse.json({ error: "Missing MONGODB_URI environment variable on server." }, { status: 500 });
+  }
+
   try {
     const formData = await request.formData();
 
@@ -84,19 +92,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload image to Cloudinary
+    // Stage 1: Upload image to Cloudinary
     let imageUrl = "/images/monarch_executive.webp";
     let cloudinaryPublicId = "";
 
     if (imageFile && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const result = await uploadToCloudinary(buffer);
-      imageUrl = result.secure_url;
-      cloudinaryPublicId = result.public_id;
+      try {
+        const bytes = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const result = await uploadToCloudinary(buffer);
+        imageUrl = result.secure_url;
+        cloudinaryPublicId = result.public_id;
+      } catch (cloudErr: unknown) {
+        const msg = cloudErr instanceof Error ? cloudErr.message : String(cloudErr);
+        console.error("Cloudinary upload failed:", msg);
+        return NextResponse.json(
+          { error: `Cloudinary upload failed: ${msg}` },
+          { status: 500 }
+        );
+      }
     }
 
-    // Build document matching user's schema spec
+    // Stage 2: Save to MongoDB
     const id = `${name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-")}-${Date.now()}`;
 
     const newProduct = {
@@ -113,17 +130,24 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
     };
 
-    const client = await clientPromise;
-    const db = client.db("sitting_company");
-    await db.collection("products").insertOne(newProduct);
+    try {
+      const client = await clientPromise;
+      const db = client.db("sitting_company");
+      await db.collection("products").insertOne(newProduct);
+    } catch (dbErr: unknown) {
+      const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+      console.error("MongoDB insert failed:", msg);
+      return NextResponse.json(
+        { error: `MongoDB save failed: ${msg}` },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/upload-chair error:", err);
-    return NextResponse.json(
-      { error: "Upload failed. Check your Cloudinary and MongoDB credentials." },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("POST /api/upload-chair unexpected error:", msg);
+    return NextResponse.json({ error: `Unexpected error: ${msg}` }, { status: 500 });
   }
 }
 
