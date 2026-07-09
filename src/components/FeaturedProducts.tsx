@@ -21,7 +21,6 @@ function getUniqueCategories(prods: Product[]) {
 
 export default function FeaturedProducts() {
   const [productsList, setProductsList] = useState<Product[]>(products);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchDynamicProducts() {
@@ -35,8 +34,6 @@ export default function FeaturedProducts() {
         }
       } catch (err) {
         console.error("Failed to load products dynamically:", err);
-      } finally {
-        setLoading(false);
       }
     }
     fetchDynamicProducts();
