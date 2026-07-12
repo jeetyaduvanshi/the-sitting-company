@@ -25,16 +25,25 @@ const uploadToCloudinary = (buffer: Buffer): Promise<{ secure_url: string; publi
   });
 };
 
-// ─── GET: return all products ───────────────────────────────────────────────
-export async function GET() {
+// ─── GET: return all products (or filter by ?category=) ─────────────────────
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const categoryFilter = searchParams.get("category");
+
     const client = await clientPromise;
     const db = client.db("sitting_company");
     const col = db.collection("products");
-    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
 
-    // Auto-seed from products.json when collection is empty
-    if (docs.length === 0) {
+    // Build query — case-insensitive category match if filter provided
+    const query = categoryFilter
+      ? { category: { $regex: new RegExp(`^${categoryFilter}$`, "i") } }
+      : {};
+
+    const docs = await col.find(query).sort({ createdAt: -1 }).toArray();
+
+    // Auto-seed from products.json only when fetching ALL products and collection is empty
+    if (!categoryFilter && docs.length === 0) {
       const filePath = path.join(process.cwd(), "src", "data", "products.json");
       const raw = await readFile(filePath, "utf-8");
       const seed = JSON.parse(raw);

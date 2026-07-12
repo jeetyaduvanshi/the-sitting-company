@@ -29,7 +29,7 @@ export default function Navbar() {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
           ? "glass-strong border-b border-brand-gold/20 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-          : "bg-brand-black/40 backdrop-blur-sm border-b border-brand-gold/8 py-6"
+          : "bg-brand-black/40 backdrop-blur-sm py-6"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
