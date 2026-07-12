@@ -109,13 +109,29 @@ export default function Footer() {
             GET IN TOUCH
           </h3>
           <div className="flex flex-col gap-4">
-            <Link
-              href="tel:+919876543210"
-              className="flex items-center gap-3 font-dmsans text-[13px] hover:text-brand-cream transition-colors duration-300 w-fit"
-            >
-              <Phone size={14} className="text-brand-gold" />
-              <span>+91 98765 43210</span>
-            </Link>
+            <div className="flex flex-col gap-2.5">
+              <Link
+                href="tel:+919868705995"
+                className="flex items-center gap-3 font-dmsans text-[13px] hover:text-brand-cream transition-colors duration-300 w-fit"
+              >
+                <Phone size={14} className="text-brand-gold" />
+                <span>+91 98687 05995</span>
+              </Link>
+              <Link
+                href="tel:+919810964905"
+                className="flex items-center gap-3 font-dmsans text-[13px] hover:text-brand-cream transition-colors duration-300 w-fit"
+              >
+                <Phone size={14} className="text-brand-gold" />
+                <span>+91 98109 64905</span>
+              </Link>
+              <Link
+                href="tel:+917678497341"
+                className="flex items-center gap-3 font-dmsans text-[13px] hover:text-brand-cream transition-colors duration-300 w-fit"
+              >
+                <Phone size={14} className="text-brand-gold" />
+                <span>+91 76784 97341</span>
+              </Link>
+            </div>
             <Link
               href="mailto:info@thesittingcompany.com"
               className="flex items-center gap-3 font-dmsans text-[13px] hover:text-brand-cream transition-colors duration-300 w-fit"

@@ -190,21 +190,35 @@ function EnquiryForm() {
       </form>
 
       {/* Direct Contact Alternatives */}
-      <div className="pt-4 border-t border-brand-divider flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col items-center sm:items-start">
-          <span className="text-[9px] font-dmsans text-brand-grey uppercase tracking-wider">
+      <div className="pt-4 border-t border-brand-divider flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col items-start w-full sm:w-auto">
+          <span className="text-[9px] font-dmsans text-brand-grey uppercase tracking-wider mb-1.5">
             OR CALL US DIRECTLY
           </span>
-          <Link
-            href="tel:+919876543210"
-            className="font-dmsans text-base font-bold text-brand-cream hover:text-brand-gold transition-colors duration-300"
-          >
-            +91 98765 43210
-          </Link>
+          <div className="flex flex-col gap-1 w-full">
+            <Link
+              href="tel:+919868705995"
+              className="font-dmsans text-sm font-bold text-brand-cream hover:text-brand-gold transition-colors duration-300 block"
+            >
+              +91 98687 05995
+            </Link>
+            <Link
+              href="tel:+919810964905"
+              className="font-dmsans text-sm font-bold text-brand-cream hover:text-brand-gold transition-colors duration-300 block"
+            >
+              +91 98109 64905
+            </Link>
+            <Link
+              href="tel:+917678497341"
+              className="font-dmsans text-sm font-bold text-brand-cream hover:text-brand-gold transition-colors duration-300 block"
+            >
+              +91 76784 97341
+            </Link>
+          </div>
         </div>
 
         <Link
-          href="https://wa.me/919876543210?text=Hello%2C%20I%20am%20interested%20in%20making%20a%20bulk%20enquiry%20with%20The%20Sitting%20Company."
+          href="https://wa.me/919868705995?text=Hello%2C%20I%20am%20interested%20in%20making%20a%20bulk%20enquiry%20with%20The%20Sitting%20Company."
           target="_blank"
           rel="noopener noreferrer"
           className="py-2 px-4 bg-[#25D366] text-white font-dmsans uppercase tracking-widest text-[10px] font-bold hover:bg-[#1ebd59] transition-all duration-300 flex items-center gap-2 rounded-sm shadow"

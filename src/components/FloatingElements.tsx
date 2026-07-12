@@ -34,7 +34,7 @@ export default function FloatingElements() {
           className="relative"
         >
           <Link
-            href="https://wa.me/919810964905?text=Hello%2C%20I%20am%20interested%20in%20seating%20solutions%20from%20The%20Sitting%20Company."
+            href="https://wa.me/919868705995?text=Hello%2C%20I%20am%20interested%20in%20seating%20solutions%20from%20The%20Sitting%20Company."
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Contact on WhatsApp"

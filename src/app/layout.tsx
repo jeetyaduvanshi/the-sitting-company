@@ -65,7 +65,7 @@ const jsonLd = {
   "url": "https://thesittingcompany.com",
   "logo": "https://thesittingcompany.com/images/about_lifestyle.webp",
   "description": "Exquisite seating crafted for spaces that inspire. Explore high-end ergonomic, office, lounge, and dining chairs by India's luxury furniture maker.",
-  "telephone": ["+919810964905", "+919868705995", "+917678497341"],
+  "telephone": ["+919868705995", "+919810964905", "+917678497341"],
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "New Delhi",
