@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     "Premium Seating Solutions",
     "The Sitting Company",
     "Executive Chairs Delhi",
-    "Luxury Lounge Chairs",
+    "Luxury Boss Chairs",
     "B2B Office Furniture Bulk Order"
   ],
 };

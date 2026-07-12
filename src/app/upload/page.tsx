@@ -24,10 +24,9 @@ const CATEGORIES = [
   { id: "office-chairs",       name: "Office Chairs",                  emoji: "🪑" },
   { id: "visitor-conference",  name: "Visitor & Conference Chairs",    emoji: "👥" },
   { id: "folding-chairs",      name: "Folding Chairs",                 emoji: "📐" },
-  { id: "study-chairs",        name: "Study Chairs",                   emoji: "📚" },
+  { id: "boss-chairs",         name: "Boss Chairs",                    emoji: "👑" },
   { id: "ergonomic-chairs",    name: "Ergonomic Chairs",               emoji: "⚙️" },
   { id: "bar-stools",          name: "Bar Stools",                     emoji: "🍹" },
-  { id: "lounge-chairs",       name: "Lounge Chairs",                  emoji: "🛋️" },
   { id: "gaming-chairs",       name: "Gaming Chairs",                  emoji: "🎮" },
 ];
 

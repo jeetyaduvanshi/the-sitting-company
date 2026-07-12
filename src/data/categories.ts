@@ -25,10 +25,10 @@ export const categories: Category[] = [
     image: "/images/folding_chair.webp",
   },
   {
-    id: "study-chairs",
-    name: "Study Chairs",
-    count: "18 Products",
-    image: "/images/study_chair.webp",
+    id: "boss-chairs",
+    name: "Boss Chairs",
+    count: "20 Products",
+    image: "/images/monarch_executive.webp",
   },
   {
     id: "ergonomic-chairs",
@@ -41,12 +41,6 @@ export const categories: Category[] = [
     name: "Bar Stools",
     count: "14 Products",
     image: "/images/bar_stool.webp",
-  },
-  {
-    id: "lounge-chairs",
-    name: "Lounge Chairs",
-    count: "20 Products",
-    image: "/images/sovereign_lounge.webp",
   },
   {
     id: "gaming-chairs",

@@ -13,10 +13,9 @@ const slugToName: Record<string, string> = {
   "office-chairs": "Office Chairs",
   "visitor-conference": "Visitor & Conference Chairs",
   "folding-chairs": "Folding Chairs",
-  "study-chairs": "Study Chairs",
+  "boss-chairs": "Boss Chairs",
   "ergonomic-chairs": "Ergonomic Chairs",
   "bar-stools": "Bar Stools",
-  "lounge-chairs": "Lounge Chairs",
   "gaming-chairs": "Gaming Chairs",
 };
 
