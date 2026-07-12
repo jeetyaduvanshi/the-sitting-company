@@ -39,8 +39,13 @@ export default function Hero() {
       id="home"
       className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-6 md:px-12 bg-brand-black overflow-hidden"
     >
+      {/* Ambient orb glow — top left */}
+      <div className="orb-gold absolute -top-32 -left-32 w-[600px] h-[600px] opacity-[0.07]" />
+      {/* Ambient orb glow — bottom right */}
+      <div className="orb-gold absolute -bottom-40 -right-40 w-[500px] h-[500px] opacity-[0.05]" style={{ animationDelay: "4s" }} />
+
       {/* Subtle radial gradient accent */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(42,31,20,0.15)_0%,rgba(15,11,8,0)_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(42,31,20,0.18)_0%,rgba(15,11,8,0)_70%)] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-12 lg:gap-16 items-center">
         {/* Left Side: Content */}
@@ -85,7 +90,7 @@ export default function Hero() {
             variants={fadeUpVariants}
             className="text-brand-grey font-dmsans text-[15px] sm:text-[17px] leading-relaxed max-w-lg mb-10"
           >
-            Crafted for offices, homes & events.
+            Crafted for offices, homes &amp; events.
             <br />
             Trusted by 500+ businesses across India.
           </motion.p>
@@ -97,13 +102,13 @@ export default function Hero() {
           >
             <Link
               href="#collections"
-              className="px-8 py-4 text-[12px] font-dmsans uppercase tracking-wide font-medium border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center"
+              className="px-8 py-4 text-[12px] font-dmsans uppercase tracking-wide font-medium border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black hover:shadow-[0_0_28px_rgba(201,168,76,0.45)] transition-all duration-300 text-center shimmer-hover"
             >
               EXPLORE COLLECTION
             </Link>
             <Link
               href="#bulk-orders"
-              className="px-8 py-4 text-[12px] font-dmsans uppercase tracking-wide font-medium bg-brand-cream text-brand-black hover:scale-105 transition-all duration-300 text-center"
+              className="px-8 py-4 text-[12px] font-dmsans uppercase tracking-wide font-medium bg-brand-cream text-brand-black hover:scale-105 hover:shadow-[0_0_24px_rgba(240,230,211,0.3)] transition-all duration-300 text-center shimmer-hover"
             >
               BULK ORDER ENQUIRY
             </Link>
@@ -115,11 +120,11 @@ export default function Hero() {
             className="w-full max-w-sm pt-6 border-t border-brand-gold/20 flex flex-col gap-3"
           >
             <span className="text-[11px] font-dmsans uppercase tracking-widest text-brand-grey">
-              Available on Amazon & Flipkart
+              Available on Amazon &amp; Flipkart
             </span>
-            <div className="flex items-center gap-5 opacity-55 hover:opacity-85 transition-opacity duration-300">
+            <div className="flex items-center gap-5 opacity-55 hover:opacity-90 transition-opacity duration-400">
               {/* Amazon Logo */}
-              <div className="relative h-6 w-6">
+              <div className="relative h-6 w-6 hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.6)] transition-all duration-300">
                 <Image
                   src="/images/amazon_logo_white.png"
                   alt="Amazon Logo"
@@ -129,7 +134,7 @@ export default function Hero() {
               </div>
               <span className="h-3 w-[1px] bg-brand-grey/30" />
               {/* Flipkart Logo */}
-              <div className="relative h-6 w-6">
+              <div className="relative h-6 w-6 hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.6)] transition-all duration-300">
                 <Image
                   src="/images/flipkart_logo.png"
                   alt="Flipkart Logo"
@@ -141,7 +146,7 @@ export default function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Right Side: Floating Card */}
+        {/* Right Side: Glassmorphic Floating Card */}
         <div className="flex justify-center lg:justify-end z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -157,10 +162,10 @@ export default function Hero() {
                 ease: "easeInOut",
               },
             }}
-            className="relative bg-brand-card p-4 border border-brand-divider shadow-2xl rounded-sm w-full max-w-[400px] group"
+            className="relative glass-card p-4 shadow-2xl rounded-sm w-full max-w-[400px] group glow-gold"
           >
             {/* Fine border container */}
-            <div className="relative aspect-[4/5] w-full overflow-hidden border border-brand-gold/10">
+            <div className="relative aspect-[4/5] w-full overflow-hidden border border-brand-gold/15">
               <Image
                 src="/images/hero_chair.webp"
                 alt="The Sitting Company Best Selling Ergonomic Office Chair"
@@ -169,11 +174,17 @@ export default function Hero() {
                 sizes="(max-width: 768px) 100vw, 400px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-black/40 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-black/50 via-transparent to-transparent pointer-events-none" />
+
+              {/* Glass info pill — bottom left */}
+              <div className="absolute bottom-4 left-4 glass px-4 py-2 rounded-sm">
+                <p className="font-dmsans text-[9px] uppercase tracking-widest text-brand-gold font-bold">Ergonomic Series</p>
+                <p className="font-cormorant text-sm text-brand-cream">Premium Craftsmanship</p>
+              </div>
             </div>
 
             {/* Bestseller Badge */}
-            <span className="absolute bottom-8 right-8 bg-brand-black/80 backdrop-blur-sm border border-brand-gold/30 px-3 py-1.5 text-[9px] font-dmsans uppercase tracking-widest text-brand-gold font-bold">
+            <span className="absolute top-8 right-8 glass border border-brand-gold/40 px-3 py-1.5 text-[9px] font-dmsans uppercase tracking-widest text-brand-gold font-bold shadow-[0_0_12px_rgba(201,168,76,0.25)]">
               BESTSELLER
             </span>
           </motion.div>

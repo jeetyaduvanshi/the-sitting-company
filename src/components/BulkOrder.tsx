@@ -18,7 +18,9 @@ export default function BulkOrder() {
       id="bulk-orders"
       className="py-24 px-6 md:px-12 bg-brand-gold text-brand-black relative overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
+      {/* Ambient gold light orbs */}
+      <div className="orb-gold absolute -top-20 -right-20 w-[400px] h-[400px] opacity-[0.15]" style={{ background: 'radial-gradient(circle, rgba(15,11,8,0.4) 0%, transparent 70%)' }} />
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center relative z-10">
         {/* Left Side: Business Info */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -64,13 +66,13 @@ export default function BulkOrder() {
           </div>
         </motion.div>
 
-        {/* Right Side: Call & WhatsApp Actions + B2B Enquiry Form */}
+        {/* Right Side: Glass Form Panel */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8 }}
-          className="bg-brand-black text-brand-white p-8 md:p-10 border border-brand-divider rounded-sm shadow-xl flex flex-col justify-between relative"
+          className="glass-strong text-brand-white p-8 md:p-10 rounded-sm shadow-[0_0_48px_rgba(0,0,0,0.6),inset_0_0_32px_rgba(201,168,76,0.04)] flex flex-col justify-between relative glow-gold"
         >
           <EnquiryForm />
         </motion.div>
@@ -181,7 +183,7 @@ function EnquiryForm() {
 
         <button
           type="submit"
-          className="w-full py-3 bg-brand-cream text-brand-black font-dmsans uppercase tracking-widest text-[11px] font-bold hover:bg-brand-gold transition-all duration-300 rounded-sm mt-2"
+          className="w-full py-3 bg-brand-cream text-brand-black font-dmsans uppercase tracking-widest text-[11px] font-bold hover:bg-brand-gold hover:shadow-[0_0_20px_rgba(201,168,76,0.5)] transition-all duration-300 rounded-sm mt-2 shimmer-hover"
         >
           SUBMIT ENQUIRY →
         </button>

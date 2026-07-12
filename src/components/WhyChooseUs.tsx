@@ -51,8 +51,11 @@ export default function WhyChooseUs() {
   };
 
   return (
-    <section className="py-28 px-6 md:px-12 bg-brand-black relative">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-28 px-6 md:px-12 bg-brand-black relative overflow-hidden">
+      {/* Ambient orb */}
+      <div className="orb-gold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-[0.04]" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
         <div className="text-center mb-20">
           <span className="text-[11px] font-dmsans uppercase tracking-widest text-brand-gold font-bold block mb-4">
@@ -75,18 +78,22 @@ export default function WhyChooseUs() {
             <motion.div
               key={index}
               variants={cardVariants}
-              whileHover={{ y: -5 }}
-              className="bg-brand-card p-8 border border-brand-divider border-t-2 border-t-brand-gold flex flex-col items-start transition-all duration-300 rounded-sm"
+              whileHover={{ y: -6 }}
+              className="glass-card p-8 border-t-2 border-t-brand-gold flex flex-col items-start rounded-sm shimmer-hover group"
             >
-              <div className="mb-6 bg-brand-black/40 p-3 rounded-full border border-brand-divider">
+              {/* Icon with glow ring */}
+              <div className="mb-6 p-3 rounded-full border border-brand-divider icon-glow-hover transition-all duration-350 group-hover:border-brand-gold/30">
                 {promise.icon}
               </div>
-              <h3 className="font-cormorant text-[22px] font-semibold text-brand-cream mb-4 leading-tight">
+              <h3 className="font-cormorant text-[22px] font-semibold text-brand-cream mb-4 leading-tight group-hover:text-brand-gold transition-colors duration-300">
                 {promise.title}
               </h3>
               <p className="font-dmsans text-[14px] text-brand-grey leading-relaxed">
                 {promise.description}
               </p>
+
+              {/* Bottom accent line — expands on hover */}
+              <div className="mt-6 h-[1px] w-0 bg-gradient-to-r from-brand-gold/60 to-transparent group-hover:w-full transition-all duration-500" />
             </motion.div>
           ))}
         </motion.div>

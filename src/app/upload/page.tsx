@@ -54,14 +54,284 @@ const SpinIcon = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EDIT MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+interface EditModalProps {
+  product: Product;
+  onClose: () => void;
+  onSave: (updated: Product) => void;
+}
+
+function EditModal({ product, onClose, onSave }: EditModalProps) {
+  const [name,         setName]         = useState(product.name);
+  const [category,     setCategory]     = useState(product.category);
+  const [description,  setDescription]  = useState(product.description || "");
+  const [price,        setPrice]        = useState(product.price || "");
+  const [amazonLink,   setAmazonLink]   = useState(product.amazonLink === "#" ? "" : (product.amazonLink || ""));
+  const [flipkartLink, setFlipkartLink] = useState(product.flipkartLink === "#" ? "" : (product.flipkartLink || ""));
+  const [tag,          setTag]          = useState(product.tag || "");
+  const [saving,       setSaving]       = useState(false);
+  const [errorMsg,     setErrorMsg]     = useState("");
+  const [saved,        setSaved]        = useState(false);
+
+  const handleSave = async () => {
+    if (!name.trim()) { setErrorMsg("Chair name cannot be empty."); return; }
+    if (!category)    { setErrorMsg("Please select a category."); return; }
+    setErrorMsg("");
+    setSaving(true);
+    try {
+      const res = await fetch("/api/upload-chair", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: product.id,
+          name: name.trim(),
+          category,
+          description: description.trim(),
+          price: price.trim(),
+          amazonLink: amazonLink.trim() || "#",
+          flipkartLink: flipkartLink.trim() || "#",
+          tag,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Update failed");
+      setSaved(true);
+      onSave({ ...product, ...data.product, name: name.trim(), category, description: description.trim(), price: price.trim(), amazonLink: amazonLink.trim() || "#", flipkartLink: flipkartLink.trim() || "#", tag });
+      setTimeout(() => onClose(), 800);
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-[#0F0B08]/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Slide-in panel */}
+      <div className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-[#140E07] border-l border-[#C9A84C]/20 flex flex-col shadow-2xl overflow-y-auto">
+
+        {/* Panel header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#2A1F14] flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 overflow-hidden border border-[#2A1F14] flex-shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p className="text-[9px] font-sans uppercase tracking-widest text-[#C9A84C] mb-0.5">Editing Chair</p>
+              <p className="font-serif text-base text-[#F0E6D3] leading-tight truncate max-w-[220px]">{product.name}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-[#9A8F84] hover:text-[#F0E6D3] border border-[#2A1F14] hover:border-[#9A8F84] transition-all duration-200"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Notice */}
+        <div className="mx-6 mt-5 px-4 py-3 bg-[#C9A84C]/5 border border-[#C9A84C]/20 flex items-start gap-3 flex-shrink-0">
+          <svg className="w-4 h-4 text-[#C9A84C] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          <p className="font-sans text-[10px] text-[#9A8F84] leading-relaxed">
+            Image is already uploaded. You can fill in or update any details below and save when ready.
+          </p>
+        </div>
+
+        {/* Form fields */}
+        <div className="flex-1 px-6 py-5 space-y-5">
+
+          {/* Name */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Chair Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. The Royal Visitor Pro"
+              className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3 outline-none transition-colors duration-300"
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Category <span className="text-red-400">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setCategory(cat.name)}
+                  className={`flex items-center gap-2 px-3 py-2.5 border text-left text-[10px] font-sans transition-all duration-200 ${
+                    category === cat.name
+                      ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#C9A84C]"
+                      : "border-[#2A1F14] text-[#9A8F84] hover:border-[#C9A84C]/30 hover:text-[#F0E6D3]"
+                  }`}
+                >
+                  <span>{cat.emoji}</span>
+                  <span className="uppercase tracking-widest leading-tight">{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Describe material, features, comfort level..."
+              className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3 outline-none transition-colors duration-300 resize-none leading-relaxed"
+            />
+          </div>
+
+          {/* Price */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Price
+            </label>
+            <input
+              type="text"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="e.g. ₹12,500"
+              className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-sm px-4 py-3 outline-none transition-colors duration-300"
+            />
+          </div>
+
+          {/* Amazon Link */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Amazon Link <span className="text-[#9A8F84] font-normal">(optional)</span>
+            </label>
+            <input
+              type="url"
+              value={amazonLink}
+              onChange={(e) => setAmazonLink(e.target.value)}
+              placeholder="https://www.amazon.in/..."
+              className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-xs px-4 py-3 outline-none transition-colors duration-300"
+            />
+          </div>
+
+          {/* Flipkart Link */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Flipkart Link <span className="text-[#9A8F84] font-normal">(optional)</span>
+            </label>
+            <input
+              type="url"
+              value={flipkartLink}
+              onChange={(e) => setFlipkartLink(e.target.value)}
+              placeholder="https://www.flipkart.com/..."
+              className="w-full bg-[#1A1209] border border-[#2A1F14] focus:border-[#C9A84C]/60 text-[#F0E6D3] placeholder-[#9A8F84]/40 font-sans text-xs px-4 py-3 outline-none transition-colors duration-300"
+            />
+          </div>
+
+          {/* Badge / Tag */}
+          <div>
+            <label className="block text-[10px] font-sans uppercase tracking-widest text-[#C9A84C] font-semibold mb-2">
+              Badge <span className="text-[#9A8F84] font-normal">(optional)</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {TAGS.map((t) => (
+                <button
+                  key={t.value || "none"}
+                  type="button"
+                  onClick={() => setTag(t.value)}
+                  className={`px-3 py-2 text-[9px] font-sans uppercase tracking-widest border transition-all duration-200 ${
+                    tag === t.value
+                      ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#C9A84C]"
+                      : "border-[#2A1F14] text-[#9A8F84] hover:border-[#C9A84C]/30 hover:text-[#F0E6D3]"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Error */}
+          {errorMsg && (
+            <div className="flex items-start gap-3 px-4 py-3 bg-red-500/5 border border-red-500/20">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <p className="font-sans text-xs text-red-400">{errorMsg}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Sticky footer */}
+        <div className="flex-shrink-0 px-6 py-5 border-t border-[#2A1F14] flex gap-3">
+          <button
+            onClick={handleSave}
+            disabled={saving || saved}
+            className={`flex-1 py-3.5 text-[11px] font-sans uppercase tracking-widest font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+              saved
+                ? "bg-green-500/20 border border-green-500/40 text-green-400"
+                : "bg-[#C9A84C] hover:bg-[#F0E6D3] text-[#0F0B08] disabled:opacity-60 disabled:cursor-not-allowed"
+            }`}
+          >
+            {saving ? (
+              <><SpinIcon /> Saving...</>
+            ) : saved ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Saved!
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                </svg>
+                Save Changes
+              </>
+            )}
+          </button>
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="px-5 py-3.5 text-[11px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-[#9A8F84] hover:text-[#F0E6D3] transition-all duration-200"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MANAGE TAB
 // ─────────────────────────────────────────────────────────────────────────────
 function ManageTab() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [products,   setProducts]   = useState<Product[]>([]);
+  const [loading,    setLoading]    = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmId, setConfirmId]   = useState<string | null>(null);
-  const [error, setError]           = useState("");
+  const [confirmId,  setConfirmId]  = useState<string | null>(null);
+  const [editProduct,setEditProduct]= useState<Product | null>(null);
+  const [error,      setError]      = useState("");
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -97,6 +367,10 @@ function ManageTab() {
     }
   };
 
+  const handleSaved = (updated: Product) => {
+    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -109,131 +383,157 @@ function ManageTab() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-serif text-2xl text-[#F0E6D3]">Current Catalogue</h2>
-          <p className="font-sans text-xs text-[#9A8F84] mt-1">
-            {products.length} chair{products.length !== 1 ? "s" : ""} total
-          </p>
+    <>
+      {/* Edit modal */}
+      {editProduct && (
+        <EditModal
+          product={editProduct}
+          onClose={() => setEditProduct(null)}
+          onSave={(updated) => { handleSaved(updated); }}
+        />
+      )}
+
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="font-serif text-2xl text-[#F0E6D3]">Current Catalogue</h2>
+            <p className="font-sans text-xs text-[#9A8F84] mt-1">
+              {products.length} chair{products.length !== 1 ? "s" : ""} total
+            </p>
+          </div>
+          <button
+            onClick={fetchProducts}
+            className="flex items-center gap-2 text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] hover:text-[#C9A84C] border border-[#2A1F14] hover:border-[#C9A84C]/30 px-3 py-2 transition-all duration-200"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Refresh
+          </button>
         </div>
-        <button
-          onClick={fetchProducts}
-          className="flex items-center gap-2 text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] hover:text-[#C9A84C] border border-[#2A1F14] hover:border-[#C9A84C]/30 px-3 py-2 transition-all duration-200"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-          Refresh
-        </button>
+
+        {error && (
+          <div className="mb-6 px-4 py-3 bg-red-500/5 border border-red-500/20 text-red-400 font-sans text-xs">
+            {error}
+          </div>
+        )}
+
+        {products.length === 0 ? (
+          <div className="text-center py-24 border border-dashed border-[#2A1F14]">
+            <p className="font-serif text-2xl text-[#9A8F84] italic mb-2">No chairs added yet.</p>
+            <p className="font-sans text-xs text-[#9A8F84]/50">Switch to the Upload tab to add your first chair.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {products.map((product) => {
+              const isConfirming = confirmId === product.id;
+              const isDeleting   = deletingId === product.id;
+
+              return (
+                <div
+                  key={product.id}
+                  className={`flex items-center gap-4 p-4 border transition-all duration-300 ${
+                    isConfirming
+                      ? "border-red-500/40 bg-red-500/5"
+                      : "border-[#2A1F14] bg-[#1A1209] hover:border-[#C9A84C]/20"
+                  }`}
+                >
+                  {/* Thumbnail */}
+                  <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-[#0F0B08] border border-[#2A1F14]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%232A1F14' stroke-width='1.5'%3E%3Cpath d='M4 18v3M20 18v3M4 12h16M4 8h16M19 12v6M5 12v6M7 4h10v4H7z'/%3E%3C/svg%3E";
+                      }}
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-serif text-base text-[#F0E6D3] truncate">{product.name}</p>
+                      {product.tag && (
+                        <span className="flex-shrink-0 text-[8px] font-sans uppercase tracking-widest border border-[#C9A84C]/30 text-[#C9A84C] px-1.5 py-0.5">
+                          {product.tag}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-sans text-xs text-[#9A8F84]">{product.category}</span>
+                      {product.amazonLink && product.amazonLink !== "#" && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
+                          <span className="font-sans text-[10px] text-green-500/70">Amazon ✓</span>
+                        </>
+                      )}
+                      {product.flipkartLink && product.flipkartLink !== "#" && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
+                          <span className="font-sans text-[10px] text-sky-500/70">Flipkart ✓</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action controls */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isConfirming ? (
+                      <>
+                        <span className="font-sans text-xs text-red-400 hidden sm:block">Remove this chair?</span>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          disabled={isDeleting}
+                          className="px-4 py-2 text-[10px] font-sans uppercase tracking-widest bg-red-500 hover:bg-red-400 text-white transition-colors duration-200 disabled:opacity-60 flex items-center gap-1.5"
+                        >
+                          {isDeleting ? <SpinIcon /> : null}
+                          {isDeleting ? "Removing..." : "Yes, Remove"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmId(null)}
+                          disabled={isDeleting}
+                          className="px-4 py-2 text-[10px] font-sans uppercase tracking-widest border border-[#2A1F14] text-[#9A8F84] hover:text-[#F0E6D3] hover:border-[#9A8F84] transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Edit button */}
+                        <button
+                          onClick={() => { setConfirmId(null); setEditProduct(product); }}
+                          className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-[#C9A84C]/50 hover:text-[#C9A84C] hover:bg-[#C9A84C]/5 transition-all duration-200"
+                          title="Edit chair details"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                          </svg>
+                          Edit
+                        </button>
+
+                        {/* Remove button */}
+                        <button
+                          onClick={() => setConfirmId(product.id)}
+                          className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-red-500/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                          Remove
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-
-      {error && (
-        <div className="mb-6 px-4 py-3 bg-red-500/5 border border-red-500/20 text-red-400 font-sans text-xs">
-          {error}
-        </div>
-      )}
-
-      {products.length === 0 ? (
-        <div className="text-center py-24 border border-dashed border-[#2A1F14]">
-          <p className="font-serif text-2xl text-[#9A8F84] italic mb-2">No chairs added yet.</p>
-          <p className="font-sans text-xs text-[#9A8F84]/50">Switch to the Upload tab to add your first chair.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {products.map((product) => {
-            const isConfirming = confirmId === product.id;
-            const isDeleting   = deletingId === product.id;
-
-            return (
-              <div
-                key={product.id}
-                className={`flex items-center gap-4 p-4 border transition-all duration-300 ${
-                  isConfirming
-                    ? "border-red-500/40 bg-red-500/5"
-                    : "border-[#2A1F14] bg-[#1A1209] hover:border-[#C9A84C]/20"
-                }`}
-              >
-                {/* Thumbnail */}
-                <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-[#0F0B08] border border-[#2A1F14]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%232A1F14' stroke-width='1.5'%3E%3Cpath d='M4 18v3M20 18v3M4 12h16M4 8h16M19 12v6M5 12v6M7 4h10v4H7z'/%3E%3C/svg%3E";
-                    }}
-                  />
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-serif text-base text-[#F0E6D3] truncate">{product.name}</p>
-                    {product.tag && (
-                      <span className="flex-shrink-0 text-[8px] font-sans uppercase tracking-widest border border-[#C9A84C]/30 text-[#C9A84C] px-1.5 py-0.5">
-                        {product.tag}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-sans text-xs text-[#9A8F84]">{product.category}</span>
-                    {product.amazonLink && product.amazonLink !== "#" && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
-                        <span className="font-sans text-[10px] text-green-500/70">Amazon ✓</span>
-                      </>
-                    )}
-                    {product.flipkartLink && product.flipkartLink !== "#" && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-[#2A1F14]" />
-                        <span className="font-sans text-[10px] text-sky-500/70">Flipkart ✓</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Delete controls */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {isConfirming ? (
-                    <>
-                      <span className="font-sans text-xs text-red-400 hidden sm:block">Remove this chair?</span>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        disabled={isDeleting}
-                        className="px-4 py-2 text-[10px] font-sans uppercase tracking-widest bg-red-500 hover:bg-red-400 text-white transition-colors duration-200 disabled:opacity-60 flex items-center gap-1.5"
-                      >
-                        {isDeleting ? <SpinIcon /> : null}
-                        {isDeleting ? "Removing..." : "Yes, Remove"}
-                      </button>
-                      <button
-                        onClick={() => setConfirmId(null)}
-                        disabled={isDeleting}
-                        className="px-4 py-2 text-[10px] font-sans uppercase tracking-widest border border-[#2A1F14] text-[#9A8F84] hover:text-[#F0E6D3] hover:border-[#9A8F84] transition-all duration-200"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmId(product.id)}
-                      className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-sans uppercase tracking-widest text-[#9A8F84] border border-[#2A1F14] hover:border-red-500/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </svg>
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 

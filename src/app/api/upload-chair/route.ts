@@ -151,6 +151,46 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// ─── PATCH: update product fields by id ──────────────────────────────────────
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, name, category, description, price, amazonLink, flipkartLink, tag } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
+    }
+
+    const client = await clientPromise;
+    const db = client.db("sitting_company");
+    const col = db.collection("products");
+
+    const doc = await col.findOne({ id });
+    if (!doc) {
+      return NextResponse.json({ error: "Product not found." }, { status: 404 });
+    }
+
+    // Build update object — only include fields that were actually sent
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const update: Record<string, any> = { updatedAt: new Date() };
+    if (name        !== undefined) update.name        = name.trim();
+    if (category    !== undefined) update.category    = category.trim();
+    if (description !== undefined) update.description = description.trim();
+    if (price       !== undefined) update.price       = price.trim();
+    if (amazonLink  !== undefined) update.amazonLink  = amazonLink.trim() || "#";
+    if (flipkartLink!== undefined) update.flipkartLink= flipkartLink.trim() || "#";
+    if (tag         !== undefined) update.tag         = tag;
+
+    await col.updateOne({ id }, { $set: update });
+
+    const updated = await col.findOne({ id });
+    return NextResponse.json({ success: true, product: updated });
+  } catch (err) {
+    console.error("PATCH /api/upload-chair error:", err);
+    return NextResponse.json({ error: "Failed to update product." }, { status: 500 });
+  }
+}
+
 // ─── DELETE: remove product by id ───────────────────────────────────────────
 export async function DELETE(request: NextRequest) {
   try {

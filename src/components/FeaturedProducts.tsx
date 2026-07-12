@@ -64,8 +64,11 @@ export default function FeaturedProducts() {
   };
 
   return (
-    <section id="products" className="py-28 px-6 md:px-12 bg-brand-black relative">
-      <div className="max-w-7xl mx-auto">
+    <section id="products" className="py-28 px-6 md:px-12 bg-brand-black relative overflow-hidden">
+      {/* Ambient orbs */}
+      <div className="orb-gold absolute top-0 right-0 w-[500px] h-[500px] opacity-[0.05]" />
+      <div className="orb-gold absolute bottom-0 left-0 w-[400px] h-[400px] opacity-[0.04]" style={{ animationDelay: "5s" }} />
+      <div className="max-w-7xl mx-auto relative z-10">
 
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-12">
@@ -121,7 +124,7 @@ export default function FeaturedProducts() {
                   key={product.id}
                   variants={cardVariants}
                   layout
-                  className="group bg-brand-card border border-brand-divider hover:border-brand-gold/40 flex flex-col justify-between transition-all duration-500 rounded-sm relative overflow-hidden"
+                  className="group glass-card flex flex-col justify-between rounded-sm relative overflow-hidden shimmer-hover"
                 >
                   {/* Product Tag */}
                   {product.tag && (
@@ -151,25 +154,22 @@ export default function FeaturedProducts() {
                   <div className="p-6 flex-grow flex flex-col justify-between bg-brand-card">
                     <div>
                       <div className="flex items-baseline justify-between mb-3 gap-2">
-                        <h3 className="font-cormorant text-2xl text-brand-cream group-hover:text-brand-gold transition-colors duration-300 font-semibold truncate max-w-[70%]">
+                        <h3 className="font-cormorant text-2xl text-brand-cream group-hover:text-brand-gold transition-colors duration-300 font-semibold">
                           {product.name}
                         </h3>
-                        <span className="font-dmsans text-sm font-semibold text-brand-gold">
-                          {product.price}
-                        </span>
                       </div>
                       <p className="font-dmsans text-xs text-brand-grey leading-relaxed min-h-[40px] line-clamp-2">
                         {product.description}
                       </p>
                     </div>
 
-                    {/* Side-by-Side CTA Buttons - Visible by Default */}
+                    {/* Side-by-Side CTA Buttons */}
                     <div className="grid grid-cols-2 gap-3 mt-6">
                       <Link
                         href={product.amazonLink || "#"}
-                        className="group/btn flex items-center justify-center gap-2 py-2.5 border border-brand-gold/15 hover:border-amber-500/50 bg-brand-black/40 hover:bg-amber-500/5 transition-all duration-300 rounded-sm"
+                        className="group/btn flex items-center justify-center gap-2 py-2.5 glass border-0 hover:border hover:border-amber-500/40 hover:shadow-[0_0_16px_rgba(255,153,0,0.2)] transition-all duration-300 rounded-sm"
                       >
-                        <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-amber-500 transition-colors duration-300 font-bold">
+                        <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-amber-400 transition-colors duration-300 font-bold">
                           BUY ON
                         </span>
                         <div className="relative w-4 h-4">
@@ -184,9 +184,9 @@ export default function FeaturedProducts() {
 
                       <Link
                         href={product.flipkartLink || "#"}
-                        className="group/btn flex items-center justify-center gap-2 py-2.5 border border-brand-gold/15 hover:border-sky-500/50 bg-brand-black/40 hover:bg-sky-500/5 transition-all duration-300 rounded-sm"
+                        className="group/btn flex items-center justify-center gap-2 py-2.5 glass border-0 hover:border hover:border-sky-500/40 hover:shadow-[0_0_16px_rgba(14,165,233,0.2)] transition-all duration-300 rounded-sm"
                       >
-                        <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-sky-500 transition-colors duration-300 font-bold">
+                        <span className="text-[9px] font-dmsans uppercase tracking-wider text-brand-grey group-hover/btn:text-sky-400 transition-colors duration-300 font-bold">
                           BUY ON
                         </span>
                         <div className="relative w-4 h-4">
@@ -198,6 +198,17 @@ export default function FeaturedProducts() {
                           />
                         </div>
                       </Link>
+                    </div>
+
+                    {/* Bulk Order Strip */}
+                    <div className="mt-4 flex items-center gap-2.5 border border-brand-gold/20 bg-brand-gold/5 px-4 py-2.5 rounded-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-brand-gold shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
+                      </svg>
+                      <p className="font-dmsans text-[9px] uppercase tracking-widest text-brand-gold/80 leading-relaxed">
+                        Bulk order of <span className="font-bold text-brand-gold">{product.name.replace('The ', '')}</span> — get exclusive discounts.
+                        <a href="#bulk-orders" className="ml-1 underline underline-offset-2 hover:text-brand-gold transition-colors duration-200">Know more →</a>
+                      </p>
                     </div>
                   </div>
                 </motion.div>
