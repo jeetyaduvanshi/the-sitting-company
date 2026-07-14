@@ -94,6 +94,25 @@ function EnquiryForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Construct the WhatsApp message text
+    const messageText = `*New Bulk Order Enquiry*\n` +
+      `-------------------------\n` +
+      `👤 *Name:* ${formData.name}\n` +
+      `📧 *Email:* ${formData.email}\n` +
+      `📞 *WhatsApp/Phone:* ${formData.phone}\n` +
+      `📦 *Est. Quantity:* ${formData.quantity}\n` +
+      `📝 *Requirements:* ${formData.message.trim() || "None"}`;
+
+    // Encode message for URL
+    const encodedText = encodeURIComponent(messageText);
+    
+    // WhatsApp URL (using primary number +91 98687 05995)
+    const whatsappUrl = `https://wa.me/919868705995?text=${encodedText}`;
+
+    // Open WhatsApp in a new tab/window
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+
     setFormSubmitted(true);
     setTimeout(() => {
       setFormSubmitted(false);
