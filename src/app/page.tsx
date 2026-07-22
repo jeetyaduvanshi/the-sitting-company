@@ -2,9 +2,9 @@
 
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import Marquee from "@/components/Marquee";
+import SocialProofBanner from "@/components/SocialProofBanner";
 import Categories from "@/components/Categories";
-import FeaturedProducts from "@/components/FeaturedProducts";
+
 import BulkOrder from "@/components/BulkOrder";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Testimonials from "@/components/Testimonials";
@@ -24,14 +24,11 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Trust Ticker Strip */}
-      <Marquee />
+      {/* Social Proof & Ratings Banner */}
+      <SocialProofBanner />
 
       {/* Collections Grid */}
       <Categories />
-
-      {/* Best Sellers Grid */}
-      <FeaturedProducts />
 
       {/* Commercial Bulk Business Orders */}
       <BulkOrder />

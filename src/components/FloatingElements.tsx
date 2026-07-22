@@ -1,25 +1,12 @@
 "use client";
 
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function FloatingElements() {
-  // Page Scroll Progress Bar Setup
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-
   return (
     <>
-      {/* Scroll Progress Bar */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-[3px] bg-brand-gold z-[100] origin-left"
-        style={{ scaleX }}
-      />
 
       {/* Floating WhatsApp Widget */}
       <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex items-center justify-center">

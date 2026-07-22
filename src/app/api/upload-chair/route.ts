@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
       ? { category: { $regex: new RegExp(`^${categoryFilter}$`, "i") } }
       : {};
 
-    const docs = await col.find(query).sort({ createdAt: -1 }).toArray();
+    // Sort: showpiece products first, then by newest
+    const docs = await col.find(query).sort({ isShowpiece: -1, createdAt: -1 }).toArray();
 
     // Auto-seed from products.json only when fetching ALL products and collection is empty
     if (!categoryFilter && docs.length === 0) {
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, category, description, price, amazonLink, flipkartLink, tag } = body;
+    const { id, name, category, description, price, amazonLink, flipkartLink, tag, isShowpiece } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
@@ -179,6 +180,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
 
+    // If setting this product as showpiece, unset all other showpieces in the same category
+    if (isShowpiece === true) {
+      const productCategory = category?.trim() || doc.category;
+      await col.updateMany(
+        { category: productCategory, id: { $ne: id } },
+        { $set: { isShowpiece: false } }
+      );
+    }
+
     // Build update object — only include fields that were actually sent
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const update: Record<string, any> = { updatedAt: new Date() };
@@ -189,6 +199,7 @@ export async function PATCH(request: NextRequest) {
     if (amazonLink  !== undefined) update.amazonLink  = amazonLink.trim() || "#";
     if (flipkartLink!== undefined) update.flipkartLink= flipkartLink.trim() || "#";
     if (tag         !== undefined) update.tag         = tag;
+    if (isShowpiece !== undefined) update.isShowpiece = isShowpiece;
 
     await col.updateOne({ id }, { $set: update });
 

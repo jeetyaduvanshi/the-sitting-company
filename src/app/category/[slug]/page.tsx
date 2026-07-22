@@ -175,13 +175,17 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const categoryName = slugToName[slug] || slug.replace(/-/g, " ");
 
-  // Find the template image from our categories data
+  // Fallback image from static categories data
   const categoryMeta = categories.find((c) => c.id === slug);
-  const heroImage = categoryMeta?.image || "/images/monarch_executive.webp";
+  const fallbackImage = categoryMeta?.image || "/images/monarch_executive.webp";
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Hero image = first product's image (the showpiece/thumbnail from homepage)
+  // Falls back to static category image if no products loaded yet
+  const heroImage = products.length > 0 ? products[0].image : fallbackImage;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -207,8 +211,8 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
       <Navbar />
 
       {/* ── Hero Banner ── */}
-      <section className="relative h-[45vh] min-h-[320px] flex items-end overflow-hidden">
-        {/* Background image (the same template image from homepage card) */}
+      <section className="relative h-[48vh] min-h-[380px] sm:min-h-[420px] pt-32 flex items-end overflow-hidden">
+        {/* Background image — uses the showpiece product's image (same as homepage thumbnail) */}
         <Image
           src={heroImage}
           alt={categoryName}
@@ -216,6 +220,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
           priority
           className="object-cover"
           sizes="100vw"
+          key={heroImage} /* re-render when image URL changes from fallback to dynamic */
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/60 to-transparent" />
@@ -223,6 +228,14 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
 
         {/* Breadcrumb + Title */}
         <div className="relative z-10 px-6 md:px-12 pb-12 max-w-7xl w-full mx-auto">
+          {/* Back Button */}
+          <Link
+            href="/#collections"
+            className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-dmsans uppercase tracking-widest text-brand-gold hover:text-brand-white transition-colors duration-300 mb-6 group w-fit"
+          >
+            <span className="transform translate-x-0 group-hover:-translate-x-1.5 transition-transform duration-300">←</span> Back to Collections
+          </Link>
+
           <nav className="flex items-center gap-2 text-[10px] font-dmsans uppercase tracking-widest text-brand-grey mb-4">
             <Link href="/" className="hover:text-brand-gold transition-colors duration-200">
               Home

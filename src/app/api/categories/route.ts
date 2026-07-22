@@ -6,7 +6,7 @@ import clientPromise from "@/lib/mongodb";
 // Force dynamic rendering — this route queries MongoDB at runtime
 export const dynamic = "force-dynamic";
 
-// ─── GET: return product counts per category ─────────────────────────────────
+// ─── GET: return product counts + showpiece image per category ────────────────
 export async function GET() {
   try {
     const client = await clientPromise;
@@ -20,25 +20,55 @@ export async function GET() {
 
     const results = await col.aggregate(pipeline).toArray();
 
-    // Convert to a simple object: { "Office Chairs": 3, "Lounge Chairs": 1 }
-    const counts: Record<string, number> = {};
+    // For each category, also grab the newest product's image (showpiece)
+    // This is the same image shown on the homepage category card thumbnail
+    const categoryData: Record<string, { count: number; showpieceImage: string | null }> = {};
+
     for (const r of results) {
-      if (r._id) counts[r._id] = r.count;
+      if (!r._id) continue;
+
+      // Get the showpiece product for this category
+      // Priority: isShowpiece:true product → newest product (fallback)
+      let showpieceProduct = await col
+        .find({ category: r._id, isShowpiece: true })
+        .limit(1)
+        .project({ image: 1 })
+        .toArray();
+
+      // Fallback: if no explicit showpiece, use the newest product
+      if (showpieceProduct.length === 0) {
+        showpieceProduct = await col
+          .find({ category: r._id })
+          .sort({ createdAt: -1 })
+          .limit(1)
+          .project({ image: 1 })
+          .toArray();
+      }
+
+      categoryData[r._id] = {
+        count: r.count,
+        showpieceImage: showpieceProduct.length > 0 ? showpieceProduct[0].image : null,
+      };
     }
 
-    return NextResponse.json(counts);
+    return NextResponse.json(categoryData);
   } catch (err) {
     console.error("GET /api/categories error:", err);
     // Fallback: count from static products.json
     try {
       const filePath = path.join(process.cwd(), "src", "data", "products.json");
       const raw = await readFile(filePath, "utf-8");
-      const products = JSON.parse(raw) as Array<{ category: string }>;
-      const counts: Record<string, number> = {};
+      const products = JSON.parse(raw) as Array<{ category: string; image?: string }>;
+      const categoryData: Record<string, { count: number; showpieceImage: string | null }> = {};
       for (const p of products) {
-        if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
+        if (p.category) {
+          if (!categoryData[p.category]) {
+            categoryData[p.category] = { count: 0, showpieceImage: p.image || null };
+          }
+          categoryData[p.category].count += 1;
+        }
       }
-      return NextResponse.json(counts);
+      return NextResponse.json(categoryData);
     } catch {
       return NextResponse.json({});
     }

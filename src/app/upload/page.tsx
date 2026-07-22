@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, DragEvent, ChangeEvent } from
 import Link from "next/link";
 
 type FormState = "idle" | "loading" | "success" | "error";
-type Tab = "upload" | "manage";
+type Tab = "upload" | "manage" | "callbacks";
 
 interface Product {
   id: string;
@@ -17,6 +17,7 @@ interface Product {
   flipkartLink: string;
   tag?: string;
   createdAt?: string;
+  isShowpiece?: boolean;
 }
 
 // ─── Category data matching user spec ───────────────────────────────────────
@@ -331,6 +332,7 @@ function ManageTab() {
   const [confirmId,  setConfirmId]  = useState<string | null>(null);
   const [editProduct,setEditProduct]= useState<Product | null>(null);
   const [error,      setError]      = useState("");
+  const [settingShowpieceId, setSettingShowpieceId] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -368,6 +370,31 @@ function ManageTab() {
 
   const handleSaved = (updated: Product) => {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
+  const handleSetShowpiece = async (product: Product) => {
+    setSettingShowpieceId(product.id);
+    setError("");
+    try {
+      const res = await fetch("/api/upload-chair", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: product.id, isShowpiece: true }),
+      });
+      if (!res.ok) throw new Error("Failed to set as thumbnail");
+      // Update local state: mark this product as showpiece, unset others in same category
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.id === product.id) return { ...p, isShowpiece: true };
+          if (p.category === product.category) return { ...p, isShowpiece: false };
+          return p;
+        })
+      );
+    } catch {
+      setError("Failed to set thumbnail. Please try again.");
+    } finally {
+      setSettingShowpieceId(null);
+    }
   };
 
   if (loading) {
@@ -501,6 +528,27 @@ function ManageTab() {
                       </>
                     ) : (
                       <>
+                        {/* Set as Thumbnail button */}
+                        <button
+                          onClick={() => handleSetShowpiece(product)}
+                          disabled={!!settingShowpieceId || product.isShowpiece === true}
+                          className={`flex items-center gap-1.5 px-3 py-2 text-[10px] font-sans uppercase tracking-widest border transition-all duration-200 ${
+                            product.isShowpiece
+                              ? "border-[#C9A84C]/50 text-[#C9A84C] bg-[#C9A84C]/10 cursor-default"
+                              : "text-[#9A8F84] border-[#2A1F14] hover:border-[#C9A84C]/50 hover:text-[#C9A84C] hover:bg-[#C9A84C]/5"
+                          }`}
+                          title={product.isShowpiece ? "This is the category thumbnail" : "Set this chair as category thumbnail"}
+                        >
+                          {settingShowpieceId === product.id ? (
+                            <SpinIcon />
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill={product.isShowpiece ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                            </svg>
+                          )}
+                          {product.isShowpiece ? "Thumbnail" : "Set Thumbnail"}
+                        </button>
+
                         {/* Edit button */}
                         <button
                           onClick={() => { setConfirmId(null); setEditProduct(product); }}
@@ -832,6 +880,164 @@ function UploadForm({ onSuccess }: { onSuccess: (name: string, cat: string) => v
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CALLBACKS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+interface CallbackRequest {
+  _id: string;
+  name: string;
+  phone: string;
+  timeSlot: string;
+  category: string;
+  status: "pending" | "called";
+  createdAt: string;
+}
+
+function CallbacksTab() {
+  const [callbacks, setCallbacks] = useState<CallbackRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchCallbacks = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/callback");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setCallbacks(Array.isArray(data) ? data : []);
+    } catch {
+      setError("Failed to load callback requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCallbacks();
+  }, []);
+
+  const toggleStatus = async (id: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "pending" ? "called" : "pending";
+    try {
+      const res = await fetch("/api/callback", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: nextStatus }),
+      });
+      if (res.ok) {
+        setCallbacks((prev) =>
+          prev.map((c) => (c._id === id ? { ...c, status: nextStatus as "pending" | "called" } : c))
+        );
+      }
+    } catch {
+      alert("Failed to update status");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <svg className="w-6 h-6 animate-spin text-[#C9A84C]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0015 0H4.5z" />
+        </svg>
+        <p className="font-sans text-xs text-[#9A8F84] uppercase tracking-widest">Loading requests...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <p className="font-serif text-xl text-red-400 mb-2">{error}</p>
+        <button onClick={fetchCallbacks} className="text-[#C9A84C] hover:underline text-xs tracking-wider uppercase font-bold">Try Again</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[#140E0A] border border-[#2A1F14] rounded-lg p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 className="font-serif text-2xl text-[#F0E6D3]">Callback Requests</h2>
+          <p className="font-sans text-xs text-[#9A8F84] mt-1">List of users requesting call support</p>
+        </div>
+        <button 
+          onClick={fetchCallbacks}
+          className="px-4 py-2 border border-[#2A1F14] text-[10px] uppercase tracking-widest text-[#F0E6D3] hover:border-[#C9A84C] transition-colors"
+        >
+          Refresh List
+        </button>
+      </div>
+
+      {callbacks.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="font-serif text-lg text-[#9A8F84] italic">No callback requests found.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+            <thead>
+              <tr className="border-b border-[#2A1F14] text-[#C9A84C] font-bold uppercase tracking-widest">
+                <th className="pb-4 pt-2">Name</th>
+                <th className="pb-4 pt-2">Phone</th>
+                <th className="pb-4 pt-2">Time Slot</th>
+                <th className="pb-4 pt-2">Interested Collection</th>
+                <th className="pb-4 pt-2">Status</th>
+                <th className="pb-4 pt-2">Received At</th>
+                <th className="pb-4 pt-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#2A1F14]/40 text-[#F5F0EA]">
+              {callbacks.map((c) => (
+                <tr key={c._id} className="hover:bg-black/20">
+                  <td className="py-4 font-semibold">{c.name}</td>
+                  <td className="py-4">
+                    <a href={`tel:${c.phone}`} className="text-[#C9A84C] hover:underline font-mono">
+                      {c.phone}
+                    </a>
+                  </td>
+                  <td className="py-4 text-[#9A8F84]">{c.timeSlot}</td>
+                  <td className="py-4">{c.category}</td>
+                  <td className="py-4">
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      c.status === "pending"
+                        ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                        : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                    }`}>
+                      {c.status}
+                    </span>
+                  </td>
+                  <td className="py-4 text-[#9A8F84]">
+                    {new Date(c.createdAt).toLocaleString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td className="py-4 text-right">
+                    <button
+                      onClick={() => toggleStatus(c._id, c.status)}
+                      className={`px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold transition-colors ${
+                        c.status === "pending"
+                          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black"
+                          : "bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-black"
+                      }`}
+                    >
+                      {c.status === "pending" ? "Mark Called" : "Mark Pending"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function UploadPage() {
@@ -888,7 +1094,7 @@ export default function UploadPage() {
 
           {/* Tab switcher */}
           <div className="flex justify-center mb-12">
-            <div className="flex border border-[#2A1F14] p-1 gap-1">
+            <div className="flex border border-[#2A1F14] p-1 gap-1 flex-wrap justify-center">
               {([
                 { key: "upload", label: "Upload New Chair", icon: (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -898,6 +1104,11 @@ export default function UploadPage() {
                 { key: "manage", label: "Manage / Remove", icon: (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                  </svg>
+                )},
+                { key: "callbacks", label: "Callback Requests", icon: (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.167-5.118-3.462-6.285-6.285l1.293-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                   </svg>
                 )},
               ] as const).map((tab) => (
@@ -957,8 +1168,10 @@ export default function UploadPage() {
             </div>
           ) : activeTab === "upload" ? (
             <UploadForm onSuccess={handleUploadSuccess} />
-          ) : (
+          ) : activeTab === "manage" ? (
             <ManageTab />
+          ) : (
+            <CallbacksTab />
           )}
 
         </div>

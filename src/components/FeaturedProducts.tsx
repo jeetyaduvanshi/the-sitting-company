@@ -64,16 +64,26 @@ export default function FeaturedProducts() {
   };
 
   return (
-    <section id="products" className="py-28 px-6 md:px-12 bg-brand-black relative overflow-hidden">
+    <section id="products" className="pt-36 pb-28 px-6 md:px-12 bg-brand-black relative overflow-hidden">
       {/* Ambient orbs */}
       <div className="orb-gold absolute top-0 right-0 w-[500px] h-[500px] opacity-[0.05]" />
       <div className="orb-gold absolute bottom-0 left-0 w-[400px] h-[400px] opacity-[0.04]" style={{ animationDelay: "5s" }} />
       <div className="max-w-7xl mx-auto relative z-10">
 
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-dmsans uppercase tracking-widest text-brand-gold hover:text-brand-white transition-colors duration-300 group w-fit"
+          >
+            <span className="transform translate-x-0 group-hover:-translate-x-1.5 transition-transform duration-300">←</span> Back to Home
+          </Link>
+        </div>
+
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-12">
           <span className="text-[11px] font-dmsans uppercase tracking-widest text-brand-gold font-bold mb-4">
-            OUR CATALOGUE
+            MOST LOVED CHAIRS
           </span>
           <h2 className="font-cormorant text-4xl sm:text-5xl lg:text-6xl text-brand-white">
             Our Most <span className="italic text-brand-cream font-normal">Loved Chairs</span>
@@ -207,7 +217,7 @@ export default function FeaturedProducts() {
                       </svg>
                       <p className="font-dmsans text-[9px] uppercase tracking-widest text-brand-gold/80 leading-relaxed">
                         Bulk order of <span className="font-bold text-brand-gold">{product.name.replace('The ', '')}</span> — get exclusive discounts.
-                        <a href="#bulk-orders" className="ml-1 underline underline-offset-2 hover:text-brand-gold transition-colors duration-200">Know more →</a>
+                        <a href="/#bulk-orders" className="ml-1 underline underline-offset-2 hover:text-brand-gold transition-colors duration-200">Know more →</a>
                       </p>
                     </div>
                   </div>

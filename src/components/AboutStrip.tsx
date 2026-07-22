@@ -24,7 +24,7 @@ export default function AboutStrip() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.8 }}
           className="flex flex-col justify-center items-start p-8 sm:p-16 lg:p-20 xl:p-28 bg-brand-deep text-brand-white"
         >
@@ -42,7 +42,7 @@ export default function AboutStrip() {
             seating that defines your space.
           </p>
           <Link
-            href="#collections"
+            href="/#collections"
             className="px-8 py-3.5 text-[11px] font-dmsans uppercase tracking-widest border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-300 rounded-sm font-semibold"
           >
             KNOW MORE →

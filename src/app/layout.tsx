@@ -20,7 +20,17 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "The Sitting Company | Premium Chairs for Office, Home & Events",
   description: "Exquisite seating crafted for spaces that inspire. Explore high-end ergonomic, office, lounge, and dining chairs by India's luxury furniture maker. Custom bulk orders available.",
-  metadataBase: new URL("https://thesittingcompany.com"),
+  metadataBase: process.env.VERCEL_URL
+    ? new URL(`https://${process.env.VERCEL_URL}`)
+    : new URL("http://localhost:3000"),
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "The Sitting Company | Premium Chairs for Office, Home & Events",
     description: "Exquisite seating crafted for spaces that inspire. Explore high-end ergonomic, office, lounge, and dining chairs by India's luxury furniture maker. Custom bulk orders available.",
@@ -79,6 +89,8 @@ const jsonLd = {
   ]
 };
 
+import CallbackModal from "@/components/CallbackModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -95,6 +107,7 @@ export default function RootLayout({
         {/* Grain overlay for luxury feel */}
         <div className="grain-overlay" />
         {children}
+        <CallbackModal />
       </body>
     </html>
   );

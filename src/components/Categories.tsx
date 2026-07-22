@@ -6,23 +6,28 @@ import { motion, Variants } from "framer-motion";
 import { useState, useEffect } from "react";
 import { categories } from "@/data/categories";
 
-export default function Categories() {
-  const [counts, setCounts] = useState<Record<string, number>>({});
+interface CategoryInfo {
+  count: number;
+  showpieceImage: string | null;
+}
 
-  // Fetch live product counts from DB
+export default function Categories() {
+  const [categoryData, setCategoryData] = useState<Record<string, CategoryInfo>>({});
+
+  // Fetch live product counts + showpiece images from DB
   useEffect(() => {
-    const fetchCounts = async () => {
+    const fetchCategoryData = async () => {
       try {
         const res = await fetch("/api/categories");
         if (res.ok) {
           const data = await res.json();
-          setCounts(data);
+          setCategoryData(data);
         }
       } catch {
         // Silently fail — hardcoded fallback will still look good
       }
     };
-    fetchCounts();
+    fetchCategoryData();
   }, []);
 
   const containerVariants: Variants = {
@@ -46,10 +51,18 @@ export default function Categories() {
 
   // Build the count label — use live count if available, otherwise show nothing
   const getCountLabel = (categoryName: string) => {
-    const count = counts[categoryName];
-    if (count === undefined) return null; // still loading
-    if (count === 0) return "Coming Soon";
-    return `${count} ${count === 1 ? "Product" : "Products"}`;
+    const info = categoryData[categoryName];
+    if (!info) return null; // still loading
+    if (info.count === 0) return "Coming Soon";
+    return `${info.count} ${info.count === 1 ? "Product" : "Products"}`;
+  };
+
+  // Get the image to show for a category — use the showpiece from DB if available,
+  // otherwise fall back to the static category image
+  const getCategoryImage = (categoryName: string, staticImage: string) => {
+    const info = categoryData[categoryName];
+    if (info?.showpieceImage) return info.showpieceImage;
+    return staticImage;
   };
 
   return (
@@ -70,12 +83,14 @@ export default function Categories() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, amount: 0.1 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
         >
           {categories.map((category) => {
             const countLabel = getCountLabel(category.name);
-            const hasProducts = counts[category.name] > 0;
+            const info = categoryData[category.name];
+            const hasProducts = info ? info.count > 0 : false;
+            const displayImage = getCategoryImage(category.name, category.image);
 
             return (
               <motion.div
@@ -92,10 +107,10 @@ export default function Categories() {
                   className="flex flex-col flex-grow"
                   aria-label={`Browse ${category.name}`}
                 >
-                  {/* Image Section */}
+                  {/* Image Section — uses showpiece product image from DB */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
                     <Image
-                      src={category.image}
+                      src={displayImage}
                       alt={category.name}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

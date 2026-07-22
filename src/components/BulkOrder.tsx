@@ -16,16 +16,16 @@ export default function BulkOrder() {
   return (
     <section
       id="bulk-orders"
-      className="py-24 px-6 md:px-12 bg-brand-gold text-brand-black relative overflow-hidden"
+      className="py-24 px-4 sm:px-6 md:px-12 bg-brand-gold text-brand-black relative overflow-x-hidden"
     >
       {/* Ambient gold light orbs */}
       <div className="orb-gold absolute -top-20 -right-20 w-[400px] h-[400px] opacity-[0.15]" style={{ background: 'radial-gradient(circle, rgba(15,11,8,0.4) 0%, transparent 70%)' }} />
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center relative z-10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-start relative z-10">
         {/* Left Side: Business Info */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.8 }}
           className="flex flex-col items-start"
         >
@@ -70,9 +70,9 @@ export default function BulkOrder() {
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.8 }}
-          className="glass-strong text-brand-white p-8 md:p-10 rounded-sm shadow-[0_0_48px_rgba(0,0,0,0.6),inset_0_0_32px_rgba(201,168,76,0.04)] flex flex-col justify-between relative glow-gold"
+          className="glass-strong text-brand-white p-6 md:p-8 rounded-sm shadow-[0_0_48px_rgba(0,0,0,0.6),inset_0_0_32px_rgba(201,168,76,0.04)] flex flex-col justify-between relative glow-gold w-full min-w-0"
         >
           <EnquiryForm />
         </motion.div>
@@ -147,20 +147,20 @@ function EnquiryForm() {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full min-w-0">
       <span className="text-[10px] font-dmsans uppercase tracking-widest text-brand-gold font-bold mb-4">
         REQUEST A BULK ORDER
       </span>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
             type="text"
             placeholder="Your Name *"
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-transparent border-b border-brand-divider text-brand-white focus:border-brand-gold focus:outline-none py-1.5 text-xs font-dmsans w-full"
+            className="bg-transparent border-b border-white/30 text-brand-white placeholder:text-white/50 focus:border-brand-gold focus:outline-none py-2 text-xs font-dmsans w-full min-w-0"
           />
           <input
             type="email"
@@ -168,18 +168,18 @@ function EnquiryForm() {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="bg-transparent border-b border-brand-divider text-brand-white focus:border-brand-gold focus:outline-none py-1.5 text-xs font-dmsans w-full"
+            className="bg-transparent border-b border-white/30 text-brand-white placeholder:text-white/50 focus:border-brand-gold focus:outline-none py-2 text-xs font-dmsans w-full min-w-0"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
             type="tel"
             placeholder="Phone / WhatsApp *"
             required
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="bg-transparent border-b border-brand-divider text-brand-white focus:border-brand-gold focus:outline-none py-1.5 text-xs font-dmsans w-full"
+            className="bg-transparent border-b border-white/30 text-brand-white placeholder:text-white/50 focus:border-brand-gold focus:outline-none py-2 text-xs font-dmsans w-full min-w-0"
           />
           <input
             type="number"
@@ -188,7 +188,7 @@ function EnquiryForm() {
             min="10"
             value={formData.quantity}
             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-            className="bg-transparent border-b border-brand-divider text-brand-white focus:border-brand-gold focus:outline-none py-1.5 text-xs font-dmsans w-full"
+            className="bg-transparent border-b border-white/30 text-brand-white placeholder:text-white/50 focus:border-brand-gold focus:outline-none py-2 text-xs font-dmsans w-full min-w-0"
           />
         </div>
 
@@ -197,7 +197,7 @@ function EnquiryForm() {
           rows={2}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="bg-transparent border-b border-brand-divider text-brand-white focus:border-brand-gold focus:outline-none py-1.5 text-xs font-dmsans w-full resize-none"
+          className="bg-transparent border-b border-white/30 text-brand-white placeholder:text-white/50 focus:border-brand-gold focus:outline-none py-2 text-xs font-dmsans w-full resize-none min-w-0"
         />
 
         <button
@@ -209,7 +209,7 @@ function EnquiryForm() {
       </form>
 
       {/* Direct Contact Alternatives */}
-      <div className="pt-4 border-t border-brand-divider flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="pt-4 border-t border-white/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col items-start w-full sm:w-auto">
           <span className="text-[9px] font-dmsans text-brand-grey uppercase tracking-wider mb-1.5">
             OR CALL US DIRECTLY
